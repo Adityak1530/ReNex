@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - ReNex</title>
+    <link rel="stylesheet" href="edit-profile.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Edit Your Profile</h1>
+            <nav>
+                <a href="profile.html" class="back-btn">← Back to Profile</a>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </nav>
+        </header>
+
+        <main>
+            <form id="editProfileForm" class="edit-form">
+                <div class="form-section">
+                    <h3>Basic Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="role">Role/Occupation</label>
+                        <input type="text" id="role" name="role" placeholder="e.g., Software Developer" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bio">Bio</label>
+                        <textarea id="bio" name="bio" rows="4" placeholder="Tell us about yourself, your skills, experience, and goals..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Profile Photo</h3>
+                    
+                    <div class="form-group">
+                        <label for="profilePhoto">Upload Photo</label>
+                        <input type="file" id="profilePhoto" name="profilePhoto" accept="image/*">
+                        <div id="photoPreview" class="photo-preview"></div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Resume</h3>
+                    
+                    <div class="form-group">
+                        <label for="resume">Upload Resume</label>
+                        <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx">
+                        <small>PDF, DOC, or DOCX format</small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Social Media Links</h3>
+                    
+                    <div class="form-group">
+                        <label for="linkedinUrl">LinkedIn Profile URL</label>
+                        <input type="url" id="linkedinUrl" name="linkedinUrl" placeholder="https://www.linkedin.com/in/your-username">
+                        <small>Your complete LinkedIn profile URL</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="githubUrl">GitHub Profile URL</label>
+                        <input type="url" id="githubUrl" name="githubUrl" placeholder="https://github.com/your-username">
+                        <small>Your complete GitHub profile URL</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="save-btn">Save Changes</button>
+                    <button type="button" onclick="window.location.href='profile.html'" class="cancel-btn">Cancel</button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <!-- Load the real Sanity client -->
+    <script src="https://unpkg.com/@sanity/client@6.0.0/dist/index.umd.js"></script>
+    
+    <script>
+        // Initialize the real Sanity client
+        function initializeSanityClient() {
+            try {
+                // Wait for Sanity to load
+                if (typeof window.sanity !== 'undefined' && window.sanity.createClient) {
+                    window.client = window.sanity.createClient({
+                        projectId: 'ce5tdyqn',
+                        dataset: 'production',
+                        useCdn: false, // Use API for writes
+                        apiVersion: '2023-05-03',
+                        token: 'skAWoKWyWjwX1Yltb2H0KecdrtvZxvHS4n0itSz1QOwrgPDt0tI17KQAuUHILqvS1jcsM2Zjm1YfM5zc3aLOPOF4oVvaNQ1cp9iWPcsS8rxiA26WM0HWrrqciju6pip7KCSGnn3P9n5Szdb1eYhhuMSQAOUAvipmZHMTJHSTEVTv7XcFYtVn'
+                    });
+                    
+                    console.log('✅ Real Sanity client initialized successfully!');
+                    console.log('Project ID: ce5tdyqn');
+                    return true;
+                } else {
+                    console.log('⏳ Sanity not loaded yet, waiting...');
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Failed to initialize Sanity client:', error);
+                return false;
+            }
+        }
+
+        // Wait for Sanity to load, then initialize
+        function waitForSanity() {
+            if (initializeSanityClient()) {
+                console.log('🚀 Sanity ready!');
+                setupFormHandling();
+                loadCurrentProfile();
+            } else {
+                setTimeout(waitForSanity, 100);
+            }
+        }
+
+        // Start waiting for Sanity
+        waitForSanity();
+
+        // Load current profile data
+        async function loadCurrentProfile() {
+            try {
+                const currentUser = JSON.parse(sessionStorage.getItem('renx_cached_user'));
+                if (!currentUser) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Get current profile from Sanity
+                const profileQuery = `*[_type == "profile" && user_id == $userId][0]`;
+                const profile = await window.client.fetch(profileQuery, { userId: currentUser._id });
+
+                if (profile) {
+                    // Populate form fields
+                    document.getElementById('fullName').value = profile.name || currentUser.fullName;
+                    document.getElementById('role').value = profile.role || '';
+                    document.getElementById('bio').value = profile.bio || '';
+                    document.getElementById('linkedinUrl').value = profile.linkedinUrl || '';
+                    document.getElementById('githubUrl').value = profile.githubUrl || '';
+                    
+                    // Show current photo if exists
+                    if (profile.photoUrl) {
+                        showPhotoPreview(profile.photoUrl);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        // Setup form handling
+        function setupFormHandling() {
+            const form = document.getElementById('editProfileForm');
+            const photoInput = document.getElementById('profilePhoto');
+            
+            // Photo preview
+            photoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        showPhotoPreview(e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Form submission
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                try {
+                    const currentUser = JSON.parse(sessionStorage.getItem('renx_cached_user'));
+                    if (!currentUser) {
+                        alert('Please login again');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    
+                    const formData = new FormData(form);
+                    const fullName = formData.get('fullName');
+                    const role = formData.get('role');
+                    const bio = formData.get('bio');
+                    const photoFile = formData.get('profilePhoto');
+                    const linkedinUrl = formData.get('linkedinUrl');
+                    const githubUrl = formData.get('githubUrl');
+                    
+                    // Get current profile
+                    const profileQuery = `*[_type == "profile" && user_id == $userId][0]`;
+                    let profile = await window.client.fetch(profileQuery, { userId: currentUser._id });
+                    
+                    if (!profile) {
+                        // Create new profile if doesn't exist
+                        profile = {
+                            _type: 'profile',
+                            user_id: currentUser._id,
+                            name: fullName,
+                            role: role,
+                            bio: bio,
+                            resumeUrl: '#',
+                            resumeName: 'resume.pdf',
+                            photoUrl: '',
+                            linkedinUrl: linkedinUrl,
+                            githubUrl: githubUrl,
+                            createdAt: new Date().toISOString()
+                        };
+                        
+                        const newProfile = await window.client.create(profile);
+                        profile = newProfile;
+                    } else {
+                        // Update existing profile
+                        const updatedProfile = {
+                            ...profile,
+                            name: fullName,
+                            role: role,
+                            bio: bio,
+                            linkedinUrl: linkedinUrl,
+                            githubUrl: githubUrl,
+                            updatedAt: new Date().toISOString()
+                        };
+                        
+                        // Handle photo upload
+                        if (photoFile && photoFile.size > 0) {
+                            const photoUrl = await handlePhotoUpload(photoFile);
+                            updatedProfile.photoUrl = photoUrl;
+                        }
+                        
+                        await window.client.createOrReplace(updatedProfile);
+                    }
+                    
+                    // Update session storage
+                    const updatedUser = { ...currentUser, fullName: fullName };
+                    sessionStorage.setItem('renx_cached_user', JSON.stringify(updatedUser));
+                    
+                    alert('Profile updated successfully!');
+                    window.location.href = 'profile.html';
+                    
+                } catch (error) {
+                    console.error('Error updating profile:', error);
+                    alert('Error updating profile: ' + error.message);
+                }
+            });
+        }
+        
+        // Handle photo upload (convert to data URL for now)
+        async function handlePhotoUpload(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resolve(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Show photo preview
+        function showPhotoPreview(src) {
+            const preview = document.getElementById('photoPreview');
+            preview.innerHTML = `<img src="${src}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">`;
+        }
+        
+        // Logout function
+        function logout() {
+            sessionStorage.removeItem('renx_cached_user');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

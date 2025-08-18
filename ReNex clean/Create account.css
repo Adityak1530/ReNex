@@ -1,0 +1,142 @@
+/* Full-screen center layout */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #f8f9fa; /* Light grayish-white background */
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Centering wrapper */
+.center-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  position: relative;
+  padding: 20px; /* Add padding to prevent form touching edges on small screens */
+  box-sizing: border-box;
+}
+
+/* Form card box */
+.form-card {
+  background-color: #fdf2d2; /* Changed to match the background color */
+  padding: 30px; /* Reduced from 40px to make form even smaller */
+  border-radius: 16px; /* Reduced from 20px for more subtle corners */
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08); /* Even softer shadow */
+  width: 300px; /* Fixed width instead of 100% */
+  max-width: 300px; /* Reduced from 350px to make form even smaller */
+  text-align: center;
+  border: 1px solid #e9ecef; /* Subtle border */
+  margin: 0 auto; /* Center horizontally */
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Title & Subtitle */
+.form-title {
+  margin-bottom: 6px; /* Reduced from 8px */
+  font-size: 20px; /* Reduced from 22px */
+  font-weight: 700;
+  color: #556B2F; /* Dark olive green for title */
+}
+
+.form-subtitle {
+  font-size: 12px; /* Reduced from 13px */
+  color: #6c757d; /* Better contrast */
+  margin-bottom: 20px; /* Reduced from 25px */
+}
+
+/* Input fields */
+.create-account-form input {
+  width: 100%; /* Full width of container */
+  padding: 10px 12px; /* Reduced from 12px 15px to make inputs even smaller */
+  margin: 6px auto; /* Center horizontally with auto margins */
+  border: 1px solid #dee2e6; /* Lighter border */
+  border-radius: 5px; /* Reduced from 6px */
+  font-size: 13px; /* Reduced from 14px */
+  background-color: #ffffff;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box; /* Include padding in width calculation */
+  display: block; /* Ensure block display */
+}
+
+.create-account-form input:focus {
+  outline: none;
+  border-color: #556B2F; /* Dark olive green on focus */
+  box-shadow: 0 0 0 3px rgba(85, 107, 47, 0.1); /* Subtle focus ring */
+}
+
+/* Button */
+.primary-btn {
+  width: 100%;
+  padding: 10px; /* Reduced from 12px */
+  margin-top: 15px; /* Reduced from 18px */
+  background-color: #556B2F; /* Dark olive green */
+  color: white;
+  border: none;
+  border-radius: 6px; /* Reduced from 8px */
+  font-size: 14px; /* Reduced from 15px */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.primary-btn:hover {
+  background-color: #6B8E23; /* Lighter olive green on hover */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(85, 107, 47, 0.3);
+}
+
+/* Footer text */
+.form-footer {
+  margin-top: 15px; /* Reduced from 18px */
+  font-size: 12px; /* Reduced from 13px */
+  color: #6c757d;
+}
+
+.link-btn {
+  color: #556B2F; /* Dark olive green */
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+  color: #6B8E23;
+}
+
+/* Responsive design */
+@media (max-width: 500px) {
+  .form-card {
+    padding: 20px 15px; /* Even smaller on mobile */
+    max-width: 280px;
+  }
+  
+  .form-title {
+    font-size: 18px;
+  }
+  
+  .form-subtitle {
+    font-size: 11px;
+  }
+}
+
+/* Background styling */
+body {
+  background-image: url('background\ white.jpg');
+  background-repeat: repeat;
+  background-color: #fbe5a5; /* Light grayish-white to match background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Form container to ensure proper alignment */
+.create-account-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
