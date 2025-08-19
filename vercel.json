@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {
   "version": 2,
   "builds": [
@@ -61,67 +60,3 @@
     }
   ]
 }
-=======
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.css",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.js",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.png",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/login",
-      "dest": "/login.html"
-    },
-    {
-      "src": "/signup",
-      "dest": "/Create-account.html"
-    },
-    {
-      "src": "/profile",
-      "dest": "/profile.html"
-    },
-    {
-      "src": "/guest",
-      "dest": "/guest.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
-    }
-  ]
-}
->>>>>>> 18d51411bc1df3b8e36f9be7a84a26971387cf43
