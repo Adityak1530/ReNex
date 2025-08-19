@@ -1,9 +1,11 @@
 // Guest Profile Viewer with ReNex ID System
 
-class GuestViewer {
+class GuestViewer { 
     constructor() {
         this.currentProfile = null;
         this.init();
+        //world king 
+
     }
 
     init() {
