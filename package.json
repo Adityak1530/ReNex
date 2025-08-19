@@ -1,0 +1,10 @@
+{
+  "name": "renex-app",
+  "version": "1.0.0",
+  "description": "ReNex portfolio application",
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

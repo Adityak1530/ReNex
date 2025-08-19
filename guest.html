@@ -716,7 +716,7 @@
                 try {
                     console.log('Fetching via direct API:', query, params);
                     
-                    let queryUrl = `https://${this.projectId}.api.sanity.io/v${this.apiVersion}/data/query/${this.dataset}?query=${encodeURIComponent(query)}`;
+                    let queryUrl = `/api/sanity-proxy?query=${encodeURIComponent(query)}`;
                     
                     if (Object.keys(params).length > 0) {
                         Object.entries(params).forEach(([key, value]) => {
@@ -729,7 +729,7 @@
                     const response = await fetch(queryUrl, {
                         method: 'GET',
                         headers: {
-                            'Authorization': `Bearer ${this.token}`
+                            'Content-Type': 'application/json'
                         }
                     });
                     

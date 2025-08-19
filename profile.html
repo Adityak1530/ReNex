@@ -304,26 +304,26 @@
             try {
                 console.log('Fetching via direct API:', query, params);
                 
-                // Build the query URL with proper GROQ parameter handling
-                let queryUrl = `https://${this.projectId}.api.sanity.io/v${this.apiVersion}/data/query/${this.dataset}?query=${encodeURIComponent(query)}`;
-                
-                // Add GROQ parameters in the correct format
-                if (Object.keys(params).length > 0) {
-                    // For GROQ queries, we need to use the correct parameter format
-                    // Sanity expects: ?query=...&$paramName=value
-                    Object.entries(params).forEach(([key, value]) => {
-                        queryUrl += `&$${key}=${encodeURIComponent(JSON.stringify(value))}`;
-                    });
-                }
-                
-                console.log('Full query URL:', queryUrl);
-                
-                const response = await fetch(queryUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
+                                    // Build the query URL using our proxy
+                    let queryUrl = `/api/sanity-proxy?query=${encodeURIComponent(query)}`;
+                    
+                    // Add GROQ parameters in the correct format
+                    if (Object.keys(params).length > 0) {
+                        // For GROQ queries, we need to use the correct parameter format
+                        // Sanity expects: ?query=...&$paramName=value
+                        Object.entries(params).forEach(([key, value]) => {
+                            queryUrl += `&$${key}=${encodeURIComponent(JSON.stringify(value))}`;
+                        });
                     }
-                });
+                    
+                    console.log('Full query URL:', queryUrl);
+                    
+                    const response = await fetch(queryUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
                 
                 if (!response.ok) {
                     const errorText = await response.text();

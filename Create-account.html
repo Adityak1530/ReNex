@@ -117,8 +117,8 @@
         try {
           console.log('Fetching via direct API:', query, params);
           
-          // Build the query URL with proper GROQ parameter handling
-          let queryUrl = `https://${this.projectId}.api.sanity.io/v${this.apiVersion}/data/query/${this.dataset}?query=${encodeURIComponent(query)}`;
+          // Build the query URL using our proxy
+          let queryUrl = `/api/sanity-proxy?query=${encodeURIComponent(query)}`;
           
           // Add GROQ parameters in the correct format
           if (Object.keys(params).length > 0) {
@@ -132,7 +132,7 @@
           const response = await fetch(queryUrl, {
             method: 'GET',
             headers: {
-              'Authorization': `Bearer ${this.token}`
+              'Content-Type': 'application/json'
             }
           });
           
