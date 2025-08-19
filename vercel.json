@@ -22,6 +22,14 @@
       "use": "@vercel/node"
     }
   ],
+  "functions": {
+    "api/sanity-proxy/index.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/test.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "rewrites": [
     {
       "source": "/",
