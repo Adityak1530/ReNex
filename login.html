@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -347,3 +348,354 @@
     </script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ReNex - Your Virtual Portfolio</title>
+    <link rel="icon" type="image/x-icon" href="logo.png">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="style.css" />
+    <a href="Create-account.html"></a>
+    <style>
+        .notification {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Ensure readonly inputs look normal */
+        input[readonly] {
+            background-color: white !important;
+            color: #333 !important;
+            cursor: text !important;
+        }
+        
+        /* Force clear any browser autofill */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px white inset !important;
+            -webkit-text-fill-color: #333 !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Home Link -->
+    <div style="position: absolute; top: 20px; left: 20px; z-index: 100;">
+      <a href="index.html" style="color: white; text-decoration: none; font-weight: 600; font-size: 20px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); padding: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px); transition: all 0.3s ease; width: 44px; height: 44px;">
+        🏠
+      </a>
+    </div>
+    
+    <div class="container">
+        <div class="left-section">
+            <img src="Homep.png" alt="ReNex Community" class="full-image" />
+        </div>
+        <div class="right-section">
+            <div class="login-card">
+                <h1 class="title">ReNex</h1>
+                <p class="subtitle">Your Virtual Portfolio</p>
+                <!-- Toggle buttons -->
+                <div class="mode-toggle">
+                    <button id="hostBtn" class="mode-btn">Host</button>
+                    <button id="guestBtn" class="mode-btn">Guest</button>
+                </div>
+                <!-- HOST login form -->
+                <form id="hostForm" class="hidden" autocomplete="off" novalidate>
+                    <input type="email" id="hostUsername" placeholder="Email" value="" autocomplete="new-email" readonly onfocus="this.removeAttribute('readonly')" required />
+                    <input type="password" id="hostPassword" placeholder="Password" value="" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')" required />
+                    <button type="submit">Log In as Host</button>
+                </form>
+                <!-- GUEST access form -->
+                <form id="guestForm" class="hidden" autocomplete="off" novalidate>
+                    <input type="text" id="guestID" placeholder="Enter ReNex ID" value="" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" required />
+                    <button type="submit">Access as Guest</button>
+                </form>
+                <p class="register-text">
+                    New here?
+                    <a href="Create-account.html">
+                        <button type="button" class="create-btn">Create Account</button>
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Direct Sanity API client - no CDN needed!
+        class DirectSanityClient {
+            constructor(config) {
+                this.projectId = config.projectId;
+                this.dataset = config.dataset;
+                this.token = config.token;
+                this.apiVersion = config.apiVersion;
+                this.baseUrl = `https://${config.projectId}.api.sanity.io/v${config.apiVersion}/data/mutate/${config.dataset}`;
+            }
+            
+            async create(doc) {
+                try {
+                    console.log('Creating document via direct API:', doc);
+                    
+                    const response = await fetch(this.baseUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({
+                            mutations: [{
+                                create: doc
+                            }]
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Document created successfully:', result);
+                    
+                    // Return the created document with ID
+                    if (result.results && result.results[0]) {
+                        return {
+                            _id: result.results[0].id,
+                            ...doc
+                        };
+                    }
+                    
+                    return result;
+                    
+                } catch (error) {
+                    console.error('Error creating document:', error);
+                    throw error;
+                }
+            }
+            
+            async fetch(query, params = {}) {
+                try {
+                    console.log('Fetching via direct API:', query, params);
+                    
+                    // Build the query URL with proper GROQ parameter handling
+                    let queryUrl = `https://${this.projectId}.api.sanity.io/v${this.apiVersion}/data/query/${this.dataset}?query=${encodeURIComponent(query)}`;
+                    
+                    // Add GROQ parameters in the correct format
+                    if (Object.keys(params).length > 0) {
+                        // For GROQ queries, we need to use the correct parameter format
+                        // Sanity expects: ?query=...&$paramName=value
+                        Object.entries(params).forEach(([key, value]) => {
+                            queryUrl += `&$${key}=${encodeURIComponent(JSON.stringify(value))}`;
+                        });
+                    }
+                    
+                    console.log('Full query URL:', queryUrl);
+                    
+                    const response = await fetch(queryUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Query result:', result);
+                    
+                    return result.result;
+                    
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    throw error;
+                }
+            }
+        }
+        
+        // Initialize the direct Sanity client
+        const client = new DirectSanityClient({
+            projectId: 'ce5tdyqn',
+            dataset: 'production',
+            apiVersion: '2023-05-03',
+            token: 'skAWoKWyWjwX1Yltb2H0KecdrtvZxvHS4n0itSz1QOwrgPDt0tI17KQAuUHILqvS1jcsM2Zjm1YfM5zc3aLOPOF4oVvaNQ1cp9iWPcsS8rxiA26WM0HWrrqciju6pip7KCSGnn3P9n5Szdb1eYhhuMSQAOUAvipmZHMTJHSTEVTv7XcFYtVn'
+        });
+        
+        console.log('✅ Direct Sanity client initialized successfully!');
+        console.log('Project ID: ce5tdyqn');
+        
+        // Setup login handling
+        function setupLoginHandling() {
+            // Mode toggle functionality
+            const hostBtn = document.getElementById('hostBtn');
+            const guestBtn = document.getElementById('guestBtn');
+            const hostForm = document.getElementById('hostForm');
+            const guestForm = document.getElementById('guestForm');
+
+            hostBtn.addEventListener('click', () => {
+                hostBtn.classList.add('active');
+                guestBtn.classList.remove('active');
+                hostForm.classList.remove('hidden');
+                guestForm.classList.add('hidden');
+                
+                // Clear the host form when it's shown
+                setTimeout(() => {
+                    const hostInputs = hostForm.querySelectorAll('input');
+                    hostInputs.forEach(input => {
+                        input.value = '';
+                        input.setAttribute('value', '');
+                        input.defaultValue = '';
+                    });
+                    hostForm.reset();
+                }, 50);
+            });
+
+            guestBtn.addEventListener('click', () => {
+                guestBtn.classList.add('active');
+                hostBtn.classList.remove('active');
+                guestForm.classList.remove('hidden');
+                hostForm.classList.add('hidden');
+                
+                // Clear the guest form when it's shown
+                setTimeout(() => {
+                    const guestInputs = guestForm.querySelectorAll('input');
+                    guestInputs.forEach(input => {
+                        input.value = '';
+                        input.setAttribute('value', '');
+                        input.defaultValue = '';
+                    });
+                    guestForm.reset();
+                }, 50);
+            });
+
+            // Host login form
+            hostForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('hostUsername').value;
+                const password = document.getElementById('hostPassword').value;
+                
+                try {
+                    console.log('Attempting login for:', email);
+                    
+                    // Hash password for comparison
+                    const passwordHash = await hashPassword(password);
+                    
+                    // Find user by email
+                    const userQuery = `*[_type == "user" && email == $email][0]`;
+                    const user = await client.fetch(userQuery, { email: email });
+                    
+                    if (!user) {
+                        alert('No account found with this email. Please create an account first.');
+                        return;
+                    }
+                    
+                    // Check password
+                    if (user.passwordHash === passwordHash) {
+                        console.log('Login successful for:', user);
+                        
+                        // Store user data in session
+                        sessionStorage.setItem('renx_cached_user', JSON.stringify(user));
+                        
+                        // Redirect to profile
+                        window.location.href = 'profile.html';
+                    } else {
+                        alert('Incorrect password. Please try again.');
+                    }
+                    
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('Login failed: ' + error.message);
+                }
+            });
+
+            // Guest access form
+            guestForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const rexId = document.getElementById('guestID').value.trim();
+                
+                if (rexId) {
+                    // Redirect to guest page with ReNex ID
+                    window.location.href = `guest.html?id=${rexId}`;
+                }
+            });
+
+            // Set host as default active
+            hostBtn.click();
+        }
+        
+        // Hash password function
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Setting up login handling...');
+            
+            // Ensure all forms are completely clean on page load
+            const hostForm = document.getElementById('hostForm');
+            const guestForm = document.getElementById('guestForm');
+            const allInputs = document.querySelectorAll('input');
+            
+            // Clear all input values multiple times to ensure they're empty
+            function clearAllForms() {
+                allInputs.forEach(input => {
+                    input.value = '';
+                    input.setAttribute('value', '');
+                    input.defaultValue = '';
+                    input.checked = false;
+                    input.selected = false;
+                });
+                
+                // Reset all forms
+                hostForm.reset();
+                guestForm.reset();
+                
+                // Force clear any remaining values
+                setTimeout(() => {
+                    allInputs.forEach(input => {
+                        input.value = '';
+                        input.setAttribute('value', '');
+                    });
+                }, 100);
+            }
+            
+            // Clear forms immediately
+            clearAllForms();
+            
+            // Clear forms again after a short delay
+            setTimeout(clearAllForms, 200);
+            
+            // Clear forms one more time after everything loads
+            setTimeout(clearAllForms, 500);
+            
+            setupLoginHandling();
+        });
+    </script>
+</body>
+</html>
+>>>>>>> 18d51411bc1df3b8e36f9be7a84a26971387cf43
