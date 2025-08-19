@@ -18,26 +18,26 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/index.html"
+      "source": "/",
+      "destination": "/index.html"
     },
     {
-      "src": "/login",
-      "dest": "/login.html"
+      "source": "/login",
+      "destination": "/login.html"
     },
     {
-      "src": "/signup",
-      "dest": "/Create-account.html"
+      "source": "/signup",
+      "destination": "/Create-account.html"
     },
     {
-      "src": "/profile",
-      "dest": "/profile.html"
+      "source": "/profile",
+      "destination": "/profile.html"
     },
     {
-      "src": "/guest",
-      "dest": "/guest.html"
+      "source": "/guest",
+      "destination": "/guest.html"
     }
   ],
   "headers": [
