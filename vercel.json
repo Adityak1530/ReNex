@@ -18,18 +18,20 @@
       "use": "@vercel/static"
     },
     {
+      "src": "api/sanity-proxy/index.js",
+      "use": "@vercel/node",
+      "config": { "runtime": "nodejs18.x" }
+    },
+    {
+      "src": "api/test.js",
+      "use": "@vercel/node",
+      "config": { "runtime": "nodejs18.x" }
+    },
+    {
       "src": "api/**/*.js",
       "use": "@vercel/node"
     }
   ],
-  "functions": {
-    "api/sanity-proxy/index.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/test.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/",
