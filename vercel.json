@@ -50,6 +50,14 @@
     {
       "source": "/guest",
       "destination": "/guest.html"
+    },
+    {
+      "source": "/api/sanity-proxy",
+      "destination": "/api/sanity-proxy/index.js"
+    },
+    {
+      "source": "/api/test",
+      "destination": "/api/test.js"
     }
   ],
   "headers": [

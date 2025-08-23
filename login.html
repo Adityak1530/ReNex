@@ -94,6 +94,9 @@
                 this.token = config.token;
                 this.apiVersion = config.apiVersion;
                 this.baseUrl = `https://${config.projectId}.api.sanity.io/v${config.apiVersion}/data/mutate/${config.dataset}`;
+                // Use absolute URL with origin to ensure it works in all environments
+                this.apiUrl = `${window.location.origin}/api/sanity-proxy`;
+                console.log('Initialized Sanity client with API URL:', this.apiUrl);
             }
             
             async create(doc) {
@@ -137,12 +140,13 @@
                 }
             }
             
-            async fetch(query, params = {}) {
+            async fetch(query, params = {}, retryCount = 0, maxRetries = 3) {
                 try {
                     console.log('Fetching via direct API:', query, params);
                     
-                    // Build the query URL using our proxy
-                    let queryUrl = `/api/sanity-proxy?query=${encodeURIComponent(query)}`;
+                    // Build the query URL using our proxy with absolute URL for production
+                    const baseUrl = window.location.origin;
+                    let queryUrl = `${baseUrl}/api/sanity-proxy?query=${encodeURIComponent(query)}`;
                     
                     // Add GROQ parameters in the correct format
                     if (Object.keys(params).length > 0) {
@@ -153,16 +157,43 @@
                         });
                     }
                     
+                    // Add project ID and dataset as parameters
+                    queryUrl += `&projectId=${this.projectId}&dataset=${this.dataset}`;
+                    
                     console.log('Full query URL:', queryUrl);
+                    console.log('Retry attempt:', retryCount);
+                    
+                    // Add cache-busting parameter for retries
+                    if (retryCount > 0) {
+                        queryUrl += `&_cb=${Date.now()}`;
+                    }
+                    
+                    // Create abort controller for timeout
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
                     
                     const response = await fetch(queryUrl, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json'
-                        }
+                        },
+                        signal: controller.signal
                     });
                     
+                    // Clear the timeout
+                    clearTimeout(timeoutId);
+                    
                     if (!response.ok) {
+                        // If we haven't exceeded max retries and it's a 404 or 5xx error, retry
+                        if (retryCount < maxRetries && (response.status === 404 || response.status >= 500)) {
+                            console.log(`Retrying after ${response.status} error (attempt ${retryCount + 1} of ${maxRetries})`);
+                            // Exponential backoff: wait longer between each retry
+                            const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 8000);
+                            await new Promise(resolve => setTimeout(resolve, backoffTime));
+                            return this.fetch(query, params, retryCount + 1, maxRetries);
+                        }
+                        
+                        // If we've exhausted retries or it's not a retryable error, handle the error
                         let errorMessage = `HTTP ${response.status}`;
                         try {
                             // Try to parse error as JSON
@@ -188,6 +219,29 @@
                     
                 } catch (error) {
                     console.error('Error fetching data:', error);
+                    
+                    // Handle network errors and retry if appropriate
+                    if (error.name === 'AbortError') {
+                        console.log('Request timed out');
+                        if (retryCount < maxRetries) {
+                            console.log(`Retrying after timeout (attempt ${retryCount + 1} of ${maxRetries})`);
+                            const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 8000);
+                            await new Promise(resolve => setTimeout(resolve, backoffTime));
+                            return this.fetch(query, params, retryCount + 1, maxRetries);
+                        }
+                        throw new Error('Connection timed out after multiple attempts. Please check your internet connection.');
+                    }
+                    
+                    // For network errors, also retry
+                    if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                        if (retryCount < maxRetries) {
+                            console.log(`Retrying after network error (attempt ${retryCount + 1} of ${maxRetries})`);
+                            const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 8000);
+                            await new Promise(resolve => setTimeout(resolve, backoffTime));
+                            return this.fetch(query, params, retryCount + 1, maxRetries);
+                        }
+                    }
+                    
                     throw error;
                 }
             }
@@ -297,8 +351,17 @@
                     submitBtn.textContent = 'Logging in...';
                     submitBtn.disabled = true;
                     
+                    // Set timeout for API request to handle connectivity issues
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Connection timed out. Please check your internet connection.')), 10000)
+                    );
+                    
                     try {
-                        const user = await client.fetch(userQuery, { email: email });
+                        // Use Promise.race to implement timeout
+                        const user = await Promise.race([
+                            client.fetch(userQuery, { email: email }),
+                            timeoutPromise
+                        ]);
                         
                         if (!user) {
                             showNotification('No account found with this email. Please create an account first.', 'error');
@@ -325,9 +388,15 @@
                     } catch (error) {
                         console.error('Login error:', error);
                         
-                        // Show user-friendly error message
+                        // Show user-friendly error message based on error type
                         if (error.message.includes('404')) {
-                            showNotification('Server connection error. Please try again later.', 'error');
+                            showNotification('Server connection error. The API endpoint could not be found. Please try again later.', 'error');
+                        } else if (error.message.includes('timeout') || error.message.includes('timed out')) {
+                            showNotification('Connection timed out. Please check your internet connection and try again.', 'error');
+                        } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                            showNotification('Network error. Please check your internet connection and try again.', 'error');
+                        } else if (error.message.includes('500')) {
+                            showNotification('Server error. Our team has been notified and is working on a fix. Please try again later.', 'error');
                         } else {
                             showNotification('Login failed: ' + error.message, 'error');
                         }
