@@ -80,7 +80,7 @@
           console.log('Creating document via direct API:', doc);
           console.log('Retry attempt:', retryCount);
           
-          // Use the API proxy instead of direct Sanity API
+          // Use the API proxy with mutation parameter
           const baseUrl = window.location.origin;
           const mutationUrl = `${baseUrl}/api/sanity-proxy`;
           
@@ -98,6 +98,7 @@
               'Authorization': `Bearer ${this.token}`
             },
             body: JSON.stringify({
+              mutation: true, // Indicate this is a mutation request
               projectId: this.projectId,
               dataset: this.dataset,
               mutations: [{
@@ -248,7 +249,7 @@
           console.log('Creating or replacing document via direct API:', doc);
           console.log('Retry attempt:', retryCount);
           
-          // Use the API proxy instead of direct Sanity API
+          // Use the API proxy with mutation parameter
           const baseUrl = window.location.origin;
           const mutationUrl = `${baseUrl}/api/sanity-proxy`;
           
@@ -266,6 +267,7 @@
               'Authorization': `Bearer ${this.token}`
             },
             body: JSON.stringify({
+              mutation: true, // Indicate this is a mutation request
               projectId: this.projectId,
               dataset: this.dataset,
               mutations: [{
