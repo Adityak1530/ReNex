@@ -224,24 +224,62 @@
             this.token = config.token;
             this.apiVersion = config.apiVersion;
             this.baseUrl = `https://${config.projectId}.api.sanity.io/v${config.apiVersion}/data/mutate/${config.dataset}`;
+            this.queryUrl = `https://${config.projectId}.api.sanity.io/v${config.apiVersion}/data/query/${config.dataset}`;
+            
+            // Detect if we're in local development or production
+            this.isLocalDev = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+            this.apiUrl = this.isLocalDev ? null : `${window.location.origin}/api/sanity-proxy`;
+            
+            console.log('Initialized Sanity client');
+            console.log('Environment:', this.isLocalDev ? 'Local Development' : 'Production');
+            console.log('API URL:', this.isLocalDev ? 'Direct Sanity API' : this.apiUrl);
         }
         
         async create(doc) {
             try {
-                console.log('Creating document via direct API:', doc);
+                console.log('Creating document:', doc);
                 
-                const response = await fetch(this.baseUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.token}`
-                    },
-                    body: JSON.stringify({
-                        mutations: [{
-                            create: doc
-                        }]
-                    })
-                });
+                let url, requestConfig;
+                
+                if (this.isLocalDev) {
+                    // Use direct Sanity API for local development
+                    url = this.baseUrl;
+                    requestConfig = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({
+                            mutations: [{
+                                create: doc
+                            }]
+                        })
+                    };
+                } else {
+                    // Use API proxy for production
+                    const baseUrl = window.location.origin;
+                    const mutationUrl = `${baseUrl}/api/sanity-proxy`;
+                    url = mutationUrl;
+                    
+                    requestConfig = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({
+                            mutation: true,
+                            projectId: this.projectId,
+                            dataset: this.dataset,
+                            mutations: [{
+                                create: doc
+                            }]
+                        })
+                    };
+                }
+                
+                const response = await fetch(url, requestConfig);
                 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -269,20 +307,49 @@
 
         async createOrReplace(doc) {
             try {
-                console.log('Creating or replacing document via direct API:', doc);
+                console.log('Creating or replacing document:', doc);
                 
-                const response = await fetch(this.baseUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.token}`
-                    },
-                    body: JSON.stringify({
-                        mutations: [{
-                            createOrReplace: doc
-                        }]
-                    })
-                });
+                let url, requestConfig;
+                
+                if (this.isLocalDev) {
+                    // Use direct Sanity API for local development
+                    url = this.baseUrl;
+                    requestConfig = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({
+                            mutations: [{
+                                createOrReplace: doc
+                            }]
+                        })
+                    };
+                } else {
+                    // Use API proxy for production
+                    const baseUrl = window.location.origin;
+                    const mutationUrl = `${baseUrl}/api/sanity-proxy`;
+                    url = mutationUrl;
+                    
+                    requestConfig = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({
+                            mutation: true,
+                            projectId: this.projectId,
+                            dataset: this.dataset,
+                            mutations: [{
+                                createOrReplace: doc
+                            }]
+                        })
+                    };
+                }
+                
+                const response = await fetch(url, requestConfig);
                 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -302,28 +369,54 @@
         
         async fetch(query, params = {}) {
             try {
-                console.log('Fetching via direct API:', query, params);
+                console.log('Fetching data:', query, params);
                 
-                                    // Build the query URL using our proxy
-                    let queryUrl = `/api/sanity-proxy?query=${encodeURIComponent(query)}`;
+                let queryUrl, requestConfig;
+                
+                if (this.isLocalDev) {
+                    // Use direct Sanity API for local development
+                    queryUrl = `${this.queryUrl}?query=${encodeURIComponent(query)}`;
                     
-                    // Add GROQ parameters in the correct format
+                    // Add GROQ parameters for direct API
                     if (Object.keys(params).length > 0) {
-                        // For GROQ queries, we need to use the correct parameter format
-                        // Sanity expects: ?query=...&$paramName=value
                         Object.entries(params).forEach(([key, value]) => {
                             queryUrl += `&$${key}=${encodeURIComponent(JSON.stringify(value))}`;
                         });
                     }
                     
-                    console.log('Full query URL:', queryUrl);
+                    requestConfig = {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        }
+                    };
+                } else {
+                    // Use API proxy for production
+                    const baseUrl = window.location.origin;
+                    queryUrl = `${baseUrl}/api/sanity-proxy?query=${encodeURIComponent(query)}`;
                     
-                    const response = await fetch(queryUrl, {
+                    // Add GROQ parameters in the correct format
+                    if (Object.keys(params).length > 0) {
+                        Object.entries(params).forEach(([key, value]) => {
+                            queryUrl += `&$${key}=${encodeURIComponent(JSON.stringify(value))}`;
+                        });
+                    }
+                    
+                    // Add project ID and dataset as parameters for proxy
+                    queryUrl += `&projectId=${this.projectId}&dataset=${this.dataset}`;
+                    
+                    requestConfig = {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json'
                         }
-                    });
+                    };
+                }
+                
+                console.log('Full query URL:', queryUrl);
+                
+                const response = await fetch(queryUrl, requestConfig);
                 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -333,7 +426,14 @@
                 const result = await response.json();
                 console.log('Query result:', result);
                 
-                return result.result;
+                // Handle different response formats
+                if (this.isLocalDev) {
+                    // Direct Sanity API returns result directly
+                    return result.result;
+                } else {
+                    // API proxy returns result wrapped
+                    return result.result;
+                }
                 
             } catch (error) {
                 console.error('Error fetching data:', error);

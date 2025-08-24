@@ -81,49 +81,248 @@
         </main>
     </div>
 
-    <!-- Load the real Sanity client -->
-    <script src="https://unpkg.com/@sanity/client@6.0.0/dist/index.umd.js"></script>
-    
+    <!-- Direct Sanity API client - no CDN needed! -->
     <script>
-        // Initialize the real Sanity client
-        function initializeSanityClient() {
-            try {
-                // Wait for Sanity to load
-                if (typeof window.sanity !== 'undefined' && window.sanity.createClient) {
-                    window.client = window.sanity.createClient({
-                        projectId: 'ce5tdyqn',
-                        dataset: 'production',
-                        useCdn: false, // Use API for writes
-                        apiVersion: '2023-05-03',
-                        token: 'skAWoKWyWjwX1Yltb2H0KecdrtvZxvHS4n0itSz1QOwrgPDt0tI17KQAuUHILqvS1jcsM2Zjm1YfM5zc3aLOPOF4oVvaNQ1cp9iWPcsS8rxiA26WM0HWrrqciju6pip7KCSGnn3P9n5Szdb1eYhhuMSQAOUAvipmZHMTJHSTEVTv7XcFYtVn'
-                    });
+        // Direct Sanity API client class
+        class DirectSanityClient {
+            constructor(config) {
+                this.projectId = config.projectId;
+                this.dataset = config.dataset;
+                this.token = config.token;
+                this.apiVersion = config.apiVersion;
+                this.baseUrl = `https://${config.projectId}.api.sanity.io/v${config.apiVersion}/data/mutate/${config.dataset}`;
+                this.queryUrl = `https://${config.projectId}.api.sanity.io/v${config.apiVersion}/data/query/${config.dataset}`;
+                
+                // Detect if we're in local development or production
+                this.isLocalDev = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+                this.apiUrl = this.isLocalDev ? null : `${window.location.origin}/api/sanity-proxy`;
+                
+                console.log('Initialized Sanity client');
+                console.log('Environment:', this.isLocalDev ? 'Local Development' : 'Production');
+                console.log('API URL:', this.isLocalDev ? 'Direct Sanity API' : this.apiUrl);
+            }
+            
+            async create(doc) {
+                try {
+                    console.log('Creating document:', doc);
                     
-                    console.log('✅ Real Sanity client initialized successfully!');
-                    console.log('Project ID: ce5tdyqn');
-                    return true;
-                } else {
-                    console.log('⏳ Sanity not loaded yet, waiting...');
-                    return false;
+                    let url, requestConfig;
+                    
+                    if (this.isLocalDev) {
+                        // Use direct Sanity API for local development
+                        url = this.baseUrl;
+                        requestConfig = {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            },
+                            body: JSON.stringify({
+                                mutations: [{
+                                    create: doc
+                                }]
+                            })
+                        };
+                    } else {
+                        // Use API proxy for production
+                        const baseUrl = window.location.origin;
+                        const mutationUrl = `${baseUrl}/api/sanity-proxy`;
+                        url = mutationUrl;
+                        
+                        requestConfig = {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            },
+                            body: JSON.stringify({
+                                mutation: true,
+                                projectId: this.projectId,
+                                dataset: this.dataset,
+                                mutations: [{
+                                    create: doc
+                                }]
+                            })
+                        };
+                    }
+                    
+                    const response = await fetch(url, requestConfig);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Document created successfully:', result);
+                    
+                    // Return the created document with ID
+                    if (result.results && result.results[0]) {
+                        return {
+                            _id: result.results[0].id,
+                            ...doc
+                        };
+                    }
+                    
+                    return result;
+                    
+                } catch (error) {
+                    console.error('Error creating document:', error);
+                    throw error;
                 }
-            } catch (error) {
-                console.error('❌ Failed to initialize Sanity client:', error);
-                return false;
+            }
+
+            async createOrReplace(doc) {
+                try {
+                    console.log('Creating or replacing document:', doc);
+                    
+                    let url, requestConfig;
+                    
+                    if (this.isLocalDev) {
+                        // Use direct Sanity API for local development
+                        url = this.baseUrl;
+                        requestConfig = {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            },
+                            body: JSON.stringify({
+                                mutations: [{
+                                    createOrReplace: doc
+                                }]
+                            })
+                        };
+                    } else {
+                        // Use API proxy for production
+                        const baseUrl = window.location.origin;
+                        const mutationUrl = `${baseUrl}/api/sanity-proxy`;
+                        url = mutationUrl;
+                        
+                        requestConfig = {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            },
+                            body: JSON.stringify({
+                                mutation: true,
+                                projectId: this.projectId,
+                                dataset: this.dataset,
+                                mutations: [{
+                                    createOrReplace: doc
+                                }]
+                            })
+                        };
+                    }
+                    
+                    const response = await fetch(url, requestConfig);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Document created or replaced successfully:', result);
+                    
+                    return result;
+                    
+                } catch (error) {
+                    console.error('Error creating or replacing document:', error);
+                    throw error;
+                }
+            }
+            
+            async fetch(query, params = {}) {
+                try {
+                    console.log('Fetching data:', query, params);
+                    
+                    let queryUrl, requestConfig;
+                    
+                    if (this.isLocalDev) {
+                        // Use direct Sanity API for local development
+                        queryUrl = `${this.queryUrl}?query=${encodeURIComponent(query)}`;
+                        
+                        // Add GROQ parameters for direct API
+                        if (Object.keys(params).length > 0) {
+                            Object.entries(params).forEach(([key, value]) => {
+                                queryUrl += `&$${key}=${encodeURIComponent(JSON.stringify(value))}`;
+                            });
+                        }
+                        
+                        requestConfig = {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            }
+                        };
+                    } else {
+                        // Use API proxy for production
+                        const baseUrl = window.location.origin;
+                        queryUrl = `${baseUrl}/api/sanity-proxy?query=${encodeURIComponent(query)}`;
+                        
+                        // Add GROQ parameters in the correct format
+                        if (Object.keys(params).length > 0) {
+                            Object.entries(params).forEach(([key, value]) => {
+                                queryUrl += `&$${key}=${encodeURIComponent(JSON.stringify(value))}`;
+                            });
+                        }
+                        
+                        // Add project ID and dataset as parameters for proxy
+                        queryUrl += `&projectId=${this.projectId}&dataset=${this.dataset}`;
+                        
+                        requestConfig = {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        };
+                    }
+                    
+                    console.log('Full query URL:', queryUrl);
+                    
+                    const response = await fetch(queryUrl, requestConfig);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Query result:', result);
+                    
+                    // Handle different response formats
+                    if (this.isLocalDev) {
+                        // Direct Sanity API returns result directly
+                        return result.result;
+                    } else {
+                        // API proxy returns result wrapped
+                        return result.result;
+                    }
+                    
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    throw error;
+                }
             }
         }
+        
+        // Initialize the direct Sanity client
+        const client = new DirectSanityClient({
+            projectId: 'ce5tdyqn',
+            dataset: 'production',
+            token: 'skAWoKWyWjwX1Yltb2H0KecdrtvZxvHS4n0itSz1QOwrgPDt0tI17KQAuUHILqvS1jcsM2Zjm1YfM5zc3aLOPOF4oVvaNQ1cp9iWPcsS8rxiA26WM0HWrrqciju6pip7KCSGnn3P9n5Szdb1eYhhuMSQAOUAvipmZHMTJHSTEVTv7XcFYtVn',
+            apiVersion: '2023-05-03'
+        });
 
-        // Wait for Sanity to load, then initialize
-        function waitForSanity() {
-            if (initializeSanityClient()) {
-                console.log('🚀 Sanity ready!');
-                setupFormHandling();
-                loadCurrentProfile();
-            } else {
-                setTimeout(waitForSanity, 100);
-            }
-        }
-
-        // Start waiting for Sanity
-        waitForSanity();
+        console.log('✅ Direct Sanity client initialized successfully!');
+        console.log('Project ID: ce5tdyqn');
+        
+        // Setup form handling and load profile immediately
+        setupFormHandling();
+        loadCurrentProfile();
 
         // Load current profile data
         async function loadCurrentProfile() {
@@ -136,7 +335,7 @@
 
                 // Get current profile from Sanity
                 const profileQuery = `*[_type == "profile" && user_id == $userId][0]`;
-                const profile = await window.client.fetch(profileQuery, { userId: currentUser._id });
+                const profile = await client.fetch(profileQuery, { userId: currentUser._id });
 
                 if (profile) {
                     // Populate form fields
@@ -195,7 +394,7 @@
                     
                     // Get current profile
                     const profileQuery = `*[_type == "profile" && user_id == $userId][0]`;
-                    let profile = await window.client.fetch(profileQuery, { userId: currentUser._id });
+                    let profile = await client.fetch(profileQuery, { userId: currentUser._id });
                     
                     if (!profile) {
                         // Create new profile if doesn't exist
@@ -213,7 +412,7 @@
                             createdAt: new Date().toISOString()
                         };
                         
-                        const newProfile = await window.client.create(profile);
+                        const newProfile = await client.create(profile);
                         profile = newProfile;
                     } else {
                         // Update existing profile
@@ -233,7 +432,7 @@
                             updatedProfile.photoUrl = photoUrl;
                         }
                         
-                        await window.client.createOrReplace(updatedProfile);
+                        await client.createOrReplace(updatedProfile);
                     }
                     
                     // Update session storage

@@ -710,28 +710,67 @@
                 this.token = config.token;
                 this.apiVersion = config.apiVersion;
                 this.baseUrl = `https://${config.projectId}.api.sanity.io/v${this.apiVersion}/data/mutate/${config.dataset}`;
+                this.queryUrl = `https://${config.projectId}.api.sanity.io/v${this.apiVersion}/data/query/${config.dataset}`;
+                
+                // Detect if we're in local development or production
+                this.isLocalDev = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+                this.apiUrl = this.isLocalDev ? null : `${window.location.origin}/api/sanity-proxy`;
+                
+                console.log('Initialized Sanity client');
+                console.log('Environment:', this.isLocalDev ? 'Local Development' : 'Production');
+                console.log('API URL:', this.isLocalDev ? 'Direct Sanity API' : this.apiUrl);
             }
             
             async fetch(query, params = {}) {
                 try {
-                    console.log('Fetching via direct API:', query, params);
+                    console.log('Fetching data:', query, params);
                     
-                    let queryUrl = `/api/sanity-proxy?query=${encodeURIComponent(query)}`;
+                    let queryUrl, requestConfig;
                     
-                    if (Object.keys(params).length > 0) {
-                        Object.entries(params).forEach(([key, value]) => {
-                            queryUrl += `&$${key}=${encodeURIComponent(JSON.stringify(value))}`;
-                        });
+                    if (this.isLocalDev) {
+                        // Use direct Sanity API for local development
+                        queryUrl = `${this.queryUrl}?query=${encodeURIComponent(query)}`;
+                        
+                        // Add GROQ parameters for direct API
+                        if (Object.keys(params).length > 0) {
+                            Object.entries(params).forEach(([key, value]) => {
+                                queryUrl += `&$${key}=${encodeURIComponent(JSON.stringify(value))}`;
+                            });
+                        }
+                        
+                        requestConfig = {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            }
+                        };
+                    } else {
+                        // Use API proxy for production
+                        const baseUrl = window.location.origin;
+                        queryUrl = `${baseUrl}/api/sanity-proxy?query=${encodeURIComponent(query)}`;
+                        
+                        // Add GROQ parameters in the correct format
+                        if (Object.keys(params).length > 0) {
+                            Object.entries(params).forEach(([key, value]) => {
+                                queryUrl += `&$${key}=${encodeURIComponent(JSON.stringify(value))}`;
+                            });
+                        }
+                        
+                        // Add project ID and dataset as parameters for proxy
+                        queryUrl += `&projectId=${this.projectId}&dataset=${this.dataset}`;
+                        
+                        requestConfig = {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        };
                     }
                     
                     console.log('Full query URL:', queryUrl);
                     
-                    const response = await fetch(queryUrl, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
+                    const response = await fetch(queryUrl, requestConfig);
                     
                     if (!response.ok) {
                         const errorText = await response.text();
@@ -741,7 +780,14 @@
                     const result = await response.json();
                     console.log('Query result:', result);
                     
-                    return result.result;
+                    // Handle different response formats
+                    if (this.isLocalDev) {
+                        // Direct Sanity API returns result directly
+                        return result.result;
+                    } else {
+                        // API proxy returns result wrapped
+                        return result.result;
+                    }
                     
                 } catch (error) {
                     console.error('Error fetching data:', error);
