@@ -7,7 +7,7 @@
   <title>ReNex - Your Virtual Portfolio</title>
   <link rel="icon" type="image/x-icon" href="logo.png">
   <link rel="icon" type="image/png" href="logo.png">
-  <link rel="stylesheet" href="Create account.css" />
+  <link rel="stylesheet" href="create-account.css" />
   <style>
     .notification {
       padding: 15px;
@@ -70,11 +70,19 @@
         this.token = config.token;
         this.apiVersion = config.apiVersion;
         this.baseUrl = `https://${config.projectId}.api.sanity.io/v${config.apiVersion}/data/mutate/${config.dataset}`;
+        // Use absolute URL with origin to ensure it works in all environments
+        this.apiUrl = `${window.location.origin}/api/sanity-proxy`;
+        console.log('Initialized Sanity client with API URL:', this.apiUrl);
       }
       
-      async create(doc) {
+      async create(doc, retryCount = 0, maxRetries = 3) {
         try {
           console.log('Creating document via direct API:', doc);
+          console.log('Retry attempt:', retryCount);
+          
+          // Create abort controller for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
           
           const response = await fetch(this.baseUrl, {
             method: 'POST',
@@ -83,15 +91,40 @@
               'Authorization': `Bearer ${this.token}`
             },
             body: JSON.stringify({
+              projectId: this.projectId,
+              dataset: this.dataset,
               mutations: [{
                 create: doc
               }]
-            })
+            }),
+            signal: controller.signal
           });
           
+          // Clear the timeout
+          clearTimeout(timeoutId);
+          
           if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
+            // If we haven't exceeded max retries and it's a 404 or 5xx error, retry
+            if (retryCount < maxRetries && (response.status === 404 || response.status >= 500)) {
+              console.log(`Retrying after ${response.status} error (attempt ${retryCount + 1} of ${maxRetries})`);
+              // Exponential backoff: wait longer between each retry
+              const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 8000);
+              await new Promise(resolve => setTimeout(resolve, backoffTime));
+              return this.create(doc, retryCount + 1, maxRetries);
+            }
+            
+            // If we've exhausted retries or it's not a retryable error, handle the error
+            let errorMessage = `HTTP ${response.status}`;
+            try {
+              // Try to parse error as JSON
+              const errorJson = await response.json();
+              errorMessage += `: ${JSON.stringify(errorJson)}`;
+            } catch (e) {
+              // Fallback to text if not JSON
+              const errorText = await response.text();
+              errorMessage += `: ${errorText}`;
+            }
+            throw new Error(errorMessage);
           }
           
           const result = await response.json();
@@ -113,32 +146,71 @@
         }
       }
       
-      async fetch(query, params = {}) {
+      async fetch(query, params = {}, retryCount = 0, maxRetries = 3) {
         try {
           console.log('Fetching via direct API:', query, params);
           
-          // Build the query URL using our proxy
-          let queryUrl = `/api/sanity-proxy?query=${encodeURIComponent(query)}`;
+          // Build the query URL using our proxy with absolute URL for production
+          const baseUrl = window.location.origin;
+          let queryUrl = `${baseUrl}/api/sanity-proxy?query=${encodeURIComponent(query)}`;
           
           // Add GROQ parameters in the correct format
           if (Object.keys(params).length > 0) {
+            // For GROQ queries, we need to use the correct parameter format
+            // Sanity expects: ?query=...&$paramName=value
             Object.entries(params).forEach(([key, value]) => {
               queryUrl += `&$${key}=${encodeURIComponent(JSON.stringify(value))}`;
             });
           }
           
+          // Add project ID and dataset as parameters
+          queryUrl += `&projectId=${this.projectId}&dataset=${this.dataset}`;
+          
           console.log('Full query URL:', queryUrl);
+          console.log('Retry attempt:', retryCount);
+          
+          // Add cache-busting parameter for retries
+          if (retryCount > 0) {
+            queryUrl += `&_cb=${Date.now()}`;
+          }
+          
+          // Create abort controller for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
           
           const response = await fetch(queryUrl, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json'
-            }
+            },
+            signal: controller.signal
           });
           
+          // Clear the timeout
+          clearTimeout(timeoutId);
+          
           if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
+            // If we haven't exceeded max retries and it's a 404 or 5xx error, retry
+            if (retryCount < maxRetries && (response.status === 404 || response.status >= 500)) {
+              console.log(`Retrying after ${response.status} error (attempt ${retryCount + 1} of ${maxRetries})`);
+              // Exponential backoff: wait longer between each retry
+              const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 8000);
+              await new Promise(resolve => setTimeout(resolve, backoffTime));
+              return this.fetch(query, params, retryCount + 1, maxRetries);
+            }
+            
+            // If we've exhausted retries or it's not a retryable error, handle the error
+            let errorMessage = `HTTP ${response.status}`;
+            try {
+              // Try to parse error as JSON
+              const errorJson = await response.json();
+              errorMessage += `: ${JSON.stringify(errorJson)}`;
+            } catch (e) {
+              // Fallback to text if not JSON
+              const errorText = await response.text();
+              errorMessage += `: ${errorText}`;
+            }
+            throw new Error(errorMessage);
           }
           
           const result = await response.json();
@@ -152,9 +224,14 @@
         }
       }
       
-      async createOrReplace(doc) {
+      async createOrReplace(doc, retryCount = 0, maxRetries = 3) {
         try {
           console.log('Creating or replacing document via direct API:', doc);
+          console.log('Retry attempt:', retryCount);
+          
+          // Create abort controller for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
           
           const response = await fetch(this.baseUrl, {
             method: 'POST',
@@ -163,15 +240,40 @@
               'Authorization': `Bearer ${this.token}`
             },
             body: JSON.stringify({
+              projectId: this.projectId,
+              dataset: this.dataset,
               mutations: [{
                 createOrReplace: doc
               }]
-            })
+            }),
+            signal: controller.signal
           });
           
+          // Clear the timeout
+          clearTimeout(timeoutId);
+          
           if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
+            // If we haven't exceeded max retries and it's a 404 or 5xx error, retry
+            if (retryCount < maxRetries && (response.status === 404 || response.status >= 500)) {
+              console.log(`Retrying after ${response.status} error (attempt ${retryCount + 1} of ${maxRetries})`);
+              // Exponential backoff: wait longer between each retry
+              const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 8000);
+              await new Promise(resolve => setTimeout(resolve, backoffTime));
+              return this.createOrReplace(doc, retryCount + 1, maxRetries);
+            }
+            
+            // If we've exhausted retries or it's not a retryable error, handle the error
+            let errorMessage = `HTTP ${response.status}`;
+            try {
+              // Try to parse error as JSON
+              const errorJson = await response.json();
+              errorMessage += `: ${JSON.stringify(errorJson)}`;
+            } catch (e) {
+              // Fallback to text if not JSON
+              const errorText = await response.text();
+              errorMessage += `: ${errorText}`;
+            }
+            throw new Error(errorMessage);
           }
           
           const result = await response.json();
