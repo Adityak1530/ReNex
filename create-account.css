@@ -22,39 +22,40 @@ body, html {
 /* Form card box */
 .form-card {
   background-color: #fdf2d2; /* Changed to match the background color */
-  padding: 30px; /* Reduced from 40px to make form even smaller */
-  border-radius: 16px; /* Reduced from 20px for more subtle corners */
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08); /* Even softer shadow */
-  width: 300px; /* Fixed width instead of 100% */
-  max-width: 300px; /* Reduced from 350px to make form even smaller */
+  padding: 40px; /* Increased padding for larger form */
+  border-radius: 20px; /* Slightly larger border radius */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); /* More prominent shadow */
+  width: 100%; /* Responsive width */
+  max-width: 480px; /* Larger maximum width */
+  min-width: 320px; /* Minimum width for usability */
   text-align: center;
-  border: 1px solid #e9ecef; /* Subtle border */
+  border: 3px solid #556B2F; /* More prominent border with brand color */
   margin: 0 auto; /* Center horizontally */
   box-sizing: border-box; /* Include padding in width calculation */
 }
 
 /* Title & Subtitle */
 .form-title {
-  margin-bottom: 6px; /* Reduced from 8px */
-  font-size: 20px; /* Reduced from 22px */
+  margin-bottom: 10px; /* Increased spacing */
+  font-size: 28px; /* Larger title font */
   font-weight: 700;
   color: #556B2F; /* Dark olive green for title */
 }
 
 .form-subtitle {
-  font-size: 12px; /* Reduced from 13px */
+  font-size: 16px; /* Larger subtitle font */
   color: #6c757d; /* Better contrast */
-  margin-bottom: 20px; /* Reduced from 25px */
+  margin-bottom: 30px; /* Increased spacing */
 }
 
 /* Input fields */
 .create-account-form input {
   width: 100%; /* Full width of container */
-  padding: 10px 12px; /* Reduced from 12px 15px to make inputs even smaller */
-  margin: 6px auto; /* Center horizontally with auto margins */
-  border: 1px solid #dee2e6; /* Lighter border */
-  border-radius: 5px; /* Reduced from 6px */
-  font-size: 13px; /* Reduced from 14px */
+  padding: 15px 18px; /* Larger padding for bigger inputs */
+  margin: 10px auto; /* Increased margins */
+  border: 2px solid #dee2e6; /* Slightly thicker border */
+  border-radius: 8px; /* Larger border radius */
+  font-size: 16px; /* Larger font size */
   background-color: #ffffff;
   transition: border-color 0.2s ease;
   box-sizing: border-box; /* Include padding in width calculation */
@@ -70,13 +71,13 @@ body, html {
 /* Button */
 .primary-btn {
   width: 100%;
-  padding: 10px; /* Reduced from 12px */
-  margin-top: 15px; /* Reduced from 18px */
+  padding: 16px; /* Larger padding for bigger button */
+  margin-top: 25px; /* Increased margin */
   background-color: #556B2F; /* Dark olive green */
   color: white;
   border: none;
-  border-radius: 6px; /* Reduced from 8px */
-  font-size: 14px; /* Reduced from 15px */
+  border-radius: 10px; /* Larger border radius */
+  font-size: 18px; /* Larger font size */
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
@@ -90,8 +91,8 @@ body, html {
 
 /* Footer text */
 .form-footer {
-  margin-top: 15px; /* Reduced from 18px */
-  font-size: 12px; /* Reduced from 13px */
+  margin-top: 25px; /* Increased margin */
+  font-size: 15px; /* Larger font size */
   color: #6c757d;
 }
 
@@ -107,18 +108,69 @@ body, html {
 }
 
 /* Responsive design */
-@media (max-width: 500px) {
+@media (max-width: 768px) {
+  .center-wrapper {
+    padding: 15px;
+  }
+  
   .form-card {
-    padding: 20px 15px; /* Even smaller on mobile */
-    max-width: 280px;
+    padding: 30px 25px;
+    max-width: 100%;
+    margin: 0 auto;
+    border: 2px solid #dee2e6; /* Lighter border for mobile */
   }
   
   .form-title {
-    font-size: 18px;
+    font-size: 24px;
   }
   
   .form-subtitle {
-    font-size: 11px;
+    font-size: 14px;
+  }
+  
+  .create-account-form input {
+    padding: 14px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .primary-btn {
+    padding: 14px;
+    font-size: 16px;
+  }
+  
+  .form-footer {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .center-wrapper {
+    padding: 10px;
+  }
+  
+  .form-card {
+    padding: 25px 20px;
+    min-width: 280px;
+    border: 2px solid #dee2e6; /* Keep lighter border on small mobile */
+  }
+  
+  .form-title {
+    font-size: 22px;
+  }
+  
+  .form-subtitle {
+    font-size: 13px;
+    margin-bottom: 25px;
+  }
+  
+  .create-account-form input {
+    padding: 12px 14px;
+    margin: 8px auto;
+  }
+  
+  .primary-btn {
+    padding: 12px;
+    margin-top: 20px;
   }
 }
 

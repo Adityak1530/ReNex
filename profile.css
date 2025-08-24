@@ -91,6 +91,97 @@ body, html {
 
 
 
+/* ReNex ID Copy Button Styles */
+.rex-id-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #6c757d;
+}
+
+.copy-icon-wrapper:hover {
+  background-color: #e9ecef;
+  border-color: darkolivegreen;
+  color: darkolivegreen;
+  transform: scale(1.05);
+}
+
+.copy-icon-wrapper:active {
+  transform: scale(0.95);
+}
+
+.copy-icon {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
+.copy-icon-wrapper.copied {
+  background-color: #d1edff;
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+.rex-id-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+/* Mobile responsive styles for copy button */
+@media (max-width: 768px) {
+  .copy-icon-wrapper {
+    width: 28px;
+    height: 28px;
+    padding: 6px;
+  }
+  
+  .copy-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .rex-id-container {
+    gap: 10px;
+  }
+  
+  .rex-id-value {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .copy-icon-wrapper {
+    width: 32px;
+    height: 32px;
+    padding: 8px;
+  }
+  
+  .copy-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .rex-id-container {
+    gap: 12px;
+  }
+}
+
 /* Main Content Styles */
 .main-content {
   flex: 1;

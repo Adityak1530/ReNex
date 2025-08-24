@@ -41,6 +41,31 @@
             -webkit-box-shadow: 0 0 0 30px white inset !important;
             -webkit-text-fill-color: #333 !important;
         }
+        
+        /* Hide image on mobile devices */
+        @media (max-width: 768px) {
+            .left-section {
+                display: none !important;
+                visibility: hidden !important;
+                width: 0 !important;
+                height: 0 !important;
+                overflow: hidden !important;
+            }
+            
+            .left-section .full-image {
+                display: none !important;
+            }
+            
+            .container {
+                flex-direction: column !important;
+            }
+            
+            .right-section {
+                width: 100% !important;
+                height: 100vh !important;
+                flex: 1 !important;
+            }
+        }
     </style>
 </head>
 <body>

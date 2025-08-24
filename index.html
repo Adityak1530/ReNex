@@ -471,12 +471,91 @@
         .footer {
             background: #333;
             color: white;
-            padding: 2rem;
+            padding: 3rem 2rem 1rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            color: #556B2F;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .footer-section p {
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-info p {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-email {
+            color: #87CEEB;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .footer-email:hover {
+            color: #556B2F;
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .footer-links a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            padding: 0.25rem 0;
+        }
+
+        .footer-links a:hover {
+            color: #556B2F;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #555;
+            padding-top: 1.5rem;
             text-align: center;
         }
 
-        .footer p {
-            opacity: 0.8;
+        .footer-bottom p {
+            opacity: 0.7;
+            margin: 0;
+        }
+
+        /* Footer mobile responsiveness */
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                text-align: center;
+            }
+            
+            .footer-links {
+                align-items: center;
+            }
+            
+            .contact-info p {
+                justify-content: center;
+            }
         }
 
         /* Container */
@@ -807,8 +886,7 @@
             <div class="support-item">
               <div class="support-icon">📧</div>
               <h3>Email Support</h3>
-              <p>Get in touch with our support team for any questions or assistance.</p>
-              <a href="mailto:renex.aiii@gmail.com" class="support-email">renex.aiii@gmail.com</a>
+              <p>Get in touch with our support team for any questions or assistance. Contact information available in the footer below.</p>
             </div>
             
             <div class="support-item">
@@ -830,9 +908,36 @@
     <!-- Footer -->
     <footer class="footer">
       <div class="container">
-        <p>&copy; 2024 ReNex. All rights reserved.</p>
-        <p><strong>ReNex - Your Career, One ID Away</strong></p>
-        <p>Modernizing professional representation through innovative virtual portfolios.</p>
+        <div class="footer-content">
+          <div class="footer-section">
+            <h4>Contact Us</h4>
+            <div class="contact-info">
+              <p>📧 <a href="mailto:renex.aiii@gmail.com" class="footer-email">renex.aiii@gmail.com</a></p>
+              <p>🌐 Support & Inquiries</p>
+              <p>⚡ Quick Response within 24 hours</p>
+            </div>
+          </div>
+          
+          <div class="footer-section">
+            <h4>ReNex</h4>
+            <p><strong>Your Career, One ID Away</strong></p>
+            <p>Modernizing professional representation through innovative virtual portfolios.</p>
+          </div>
+          
+          <div class="footer-section">
+            <h4>Quick Links</h4>
+            <div class="footer-links">
+              <a href="#features">Features</a>
+              <a href="#how-it-works">How It Works</a>
+              <a href="login.html">Login</a>
+              <a href="Create-account.html">Sign Up</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="footer-bottom">
+          <p>&copy; 2024 ReNex. All rights reserved.</p>
+        </div>
       </div>
     </footer>
 
