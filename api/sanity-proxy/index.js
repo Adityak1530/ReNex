@@ -21,59 +21,92 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get the query parameters from the request
-    const { query, projectId = 'ce5tdyqn', dataset = 'production', ...otherParams } = req.query;
+    // Check if this is a mutation request (POST with body) or query request (GET with query param)
+    const isMutationRequest = req.method === 'POST' && req.body && req.body.mutation;
     
-    console.log('Processing query parameters:', { query, projectId, dataset, otherParams });
+    console.log('Request type:', isMutationRequest ? 'Mutation' : 'Query');
+    console.log('Request method:', req.method);
+    console.log('Request body:', req.body);
     
-    if (!query) {
-      console.log('Error: Missing query parameter');
-      return res.status(400).json({ 
-        error: 'Query parameter is required',
-        timestamp: new Date().toISOString(),
-        path: req.url
-      });
+    let sanityUrl, requestBody, projectId, dataset;
+    
+    if (isMutationRequest) {
+      // Handle mutation requests
+      projectId = req.body.projectId || 'ce5tdyqn';
+      dataset = req.body.dataset || 'production';
+      sanityUrl = `https://${projectId}.api.sanity.io/v2023-05-03/data/mutate/${dataset}`;
+      requestBody = {
+        mutations: req.body.mutations
+      };
+      console.log('Mutation URL:', sanityUrl);
+      console.log('Mutation body:', requestBody);
+    } else {
+      // Handle query requests
+      const { query, projectId: qProjectId = 'ce5tdyqn', dataset: qDataset = 'production', ...otherParams } = req.query;
+      projectId = qProjectId;
+      dataset = qDataset;
+      
+      console.log('Processing query parameters:', { query, projectId, dataset, otherParams });
+      
+      if (!query) {
+        console.log('Error: Missing query parameter');
+        return res.status(400).json({ 
+          error: 'Query parameter is required for query requests',
+          timestamp: new Date().toISOString(),
+          path: req.url
+        });
+      }
+      
+      // Construct the Sanity API URL with project ID and dataset from parameters or defaults
+      sanityUrl = `https://${projectId}.api.sanity.io/v2023-05-03/data/query/${dataset}`;
+      console.log('Query URL:', sanityUrl);
     }
     
-    // Construct the Sanity API URL with project ID and dataset from parameters or defaults
-    const sanityUrl = `https://${projectId}.api.sanity.io/v2023-05-03/data/query/${dataset}`;
-    console.log('Using Sanity URL:', sanityUrl);
+    let fullUrl;
     
-    // Create a new URLSearchParams object for the base query
-    const params = new URLSearchParams();
-    params.append('query', query);
-    
-    // Process other parameters - handle special $ parameters for GROQ
-    Object.entries(otherParams).forEach(([key, value]) => {
-      console.log('Processing parameter:', { key, value });
+    if (!isMutationRequest) {
+      // Only build query string for query requests
+      const { query, projectId: qProjectId = 'ce5tdyqn', dataset: qDataset = 'production', ...otherParams } = req.query;
       
-      // If the key starts with $, it's a GROQ parameter
-      if (key.startsWith('$')) {
-        try {
-          // Try to parse the value if it's JSON
-          const parsedValue = JSON.parse(value);
-          params.append(key, JSON.stringify(parsedValue));
-          console.log(`Added GROQ parameter ${key} with parsed JSON value`);
-        } catch (e) {
-          // If parsing fails, use the raw value
+      // Create a new URLSearchParams object for the base query
+      const params = new URLSearchParams();
+      params.append('query', query);
+      
+      // Process other parameters - handle special $ parameters for GROQ
+      Object.entries(otherParams).forEach(([key, value]) => {
+        console.log('Processing parameter:', { key, value });
+        
+        // If the key starts with $, it's a GROQ parameter
+        if (key.startsWith('$')) {
+          try {
+            // Try to parse the value if it's JSON
+            const parsedValue = JSON.parse(value);
+            params.append(key, JSON.stringify(parsedValue));
+            console.log(`Added GROQ parameter ${key} with parsed JSON value`);
+          } catch (e) {
+            // If parsing fails, use the raw value
+            params.append(key, value);
+            console.log(`Added GROQ parameter ${key} with raw value`);
+          }
+        } else if (key !== 'projectId' && key !== 'dataset') {
+          // Regular query parameter (skip projectId and dataset as they're used in the URL)
           params.append(key, value);
-          console.log(`Added GROQ parameter ${key} with raw value`);
+          console.log(`Added regular parameter ${key}`);
         }
-      } else if (key !== 'projectId' && key !== 'dataset') {
-        // Regular query parameter (skip projectId and dataset as they're used in the URL)
-        params.append(key, value);
-        console.log(`Added regular parameter ${key}`);
-      }
-    });
-    
-    // Build query string
-    const queryString = params.toString();
-    const fullUrl = `${sanityUrl}?${queryString}`;
+      });
+      
+      // Build query string
+      const queryString = params.toString();
+      fullUrl = `${sanityUrl}?${queryString}`;
+      console.log('Request params:', params.toString());
+    } else {
+      // For mutations, just use the base URL
+      fullUrl = sanityUrl;
+    }
 
     // Log the request details for debugging
     console.log('Full request URL:', fullUrl);
     console.log('Request method:', req.method);
-    console.log('Request params:', params.toString());
     
     // Create an AbortController for timeout
     const controller = new AbortController();
@@ -91,7 +124,7 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer skAWoKWyWjwX1Yltb2H0KecdrtvZxvHS4n0itSz1QOwrgPDt0tI17KQAuUHILqvS1jcsM2Zjm1YfM5zc3aLOPOF4oVvaNQ1cp9iWPcsS8rxiA26WM0HWrrqciju6pip7KCSGnn3P9n5Szdb1eYhhuMSQAOUAvipmZHMTJHSTEVTv7XcFYtVn'
         },
-        body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
+        body: isMutationRequest ? JSON.stringify(requestBody) : (req.method !== 'GET' ? JSON.stringify(req.body) : undefined),
         signal: controller.signal
       });
 
