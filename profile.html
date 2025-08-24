@@ -31,7 +31,7 @@
         <div class="profile-image-section">
           <div class="image-card">
             <img id="profileImage" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjUwMCIgdmlld0JveD0iMCAwIDQwMCA1MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNTAwIiBmaWxsPSIjRjBGOUYwIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMjUwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM2NjY2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM3VtIj5Qcm9maWxlIEltYWdlPC90ZXh0Pgo8L3N2Zz4K" alt="Profile Image" class="profile-image">
-            <button id="uploadPhotoBtn" class="upload-btn" style="margin-top: 1rem;">Upload Photo</button>
+
           </div>
         </div>
 
@@ -61,8 +61,8 @@
             </div>
             
             <!-- Social Media Section -->
-            <div class="social-media-section" id="socialMediaSection" style="margin-top: 20px;">
-              <h4 style="margin: 0 0 15px 0; color: #333; font-size: 16px;">Connect With Me</h4>
+            <div class="social-media-section" id="socialMediaSection" style="margin-top: 15px;">
+              <h4 style="margin: 0 0 8px 0; color: #333; font-size: 14px; font-weight: 600;">Connect With Me</h4>
               <div class="social-links" id="socialLinks">
                 <!-- Social links will be dynamically added here -->
               </div>
@@ -493,9 +493,7 @@
                                 <p style="margin: 0; color: #666; font-size: 14px;">Manage your resume</p>
                             </div>
                             <div class="resume-actions">
-                                <button onclick="viewResume('${profile.resumeUrl}')" class="view-resume-btn" style="background: #556B2F; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-right: 10px;">👁️ View</button>
-                                <a href="${profile.resumeUrl}" target="_blank" class="resume-link" style="background: #556B2F; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; margin-right: 10px;">⬇️ Download</a>
-                                <button onclick="removeResume()" class="remove-resume-btn" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🗑️ Remove</button>
+                                <button onclick="event.preventDefault(); event.stopPropagation(); viewResume('${profile.resumeUrl}'); return false;" class="view-resume-btn" style="background: #556B2F; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">👁️ View</button>
                             </div>
                         </div>
                     `;
@@ -625,16 +623,356 @@
         const modal = document.getElementById('resumeModal');
         const content = document.getElementById('resumeContent');
         
-        // Set the resume URL in the iframe
+        // Update modal header
+        const modalHeader = modal.querySelector('.resume-modal-header h3');
+        modalHeader.textContent = '📄 Resume Viewer';
+        
+        console.log('Attempting to view resume:', resumeUrl);
+        console.log('Resume URL type:', typeof resumeUrl);
+        console.log('Resume URL starts with data:', resumeUrl.startsWith('data:'));
+        
+        // Show loading message
         content.innerHTML = `
-            <iframe src="${resumeUrl}" 
-                    style="width: 100%; height: 100%; border: none; border-radius: 8px;" 
-                    title="Resume Viewer">
-            </iframe>
+            <div style="text-align: center; padding: 50px; color: #666;">
+                <h3>📄 Loading Resume...</h3>
+                <p>Please wait while we prepare your resume for viewing.</p>
+            </div>
         `;
         
-        // Show the modal
+        // Show the modal first
         modal.style.display = 'block';
+        
+        // Delay to allow modal to show
+        setTimeout(() => {
+            // Check if it's a data URL (base64 encoded file)
+            if (resumeUrl && resumeUrl.startsWith('data:')) {
+                console.log('Processing data URL...');
+                
+                // Extract the base64 data and MIME type
+                const mimeMatch = resumeUrl.match(/data:([^;]+);base64,(.+)/);
+                if (mimeMatch) {
+                    const mimeType = mimeMatch[1];
+                    const base64Data = mimeMatch[2];
+                    
+                    console.log('MIME type:', mimeType);
+                    console.log('Base64 data length:', base64Data.length);
+                    
+                    try {
+                        // Convert base64 to binary
+                        const binaryString = atob(base64Data);
+                        const bytes = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i++) {
+                            bytes[i] = binaryString.charCodeAt(i);
+                        }
+                        
+                        // Create blob and URL
+                        const blob = new Blob([bytes], { type: mimeType });
+                        const blobUrl = URL.createObjectURL(blob);
+                        
+                        console.log('Created blob URL:', blobUrl);
+                        
+                        // Display based on file type
+                        if (mimeType.includes('pdf')) {
+                            // For PDF files
+                            content.innerHTML = `
+                                <div style="width: 100%; height: 100%; position: relative;">
+                                    <iframe src="${blobUrl}#toolbar=0" 
+                                            style="width: 100%; height: 85%; border: none; border-radius: 8px; display: block;" 
+                                            title="PDF Viewer">
+                                    </iframe>
+                                    <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 0 0 8px 8px;">
+                                        <button onclick="window.open('${blobUrl}', '_blank')" 
+                                                style="background: #556B2F; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; margin: 0 5px; font-size: 14px;">
+                                            🔍 Full Screen
+                                        </button>
+                                        <button onclick="downloadFromBlob('${blobUrl}', 'resume.pdf')" 
+                                                style="background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; margin: 0 5px; font-size: 14px;">
+                                            ⬇️ Download
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        } else if (mimeType.includes('word') || mimeType.includes('document') || mimeType.includes('officedocument')) {
+                            // For Word documents - try multiple preview methods
+                            console.log('Attempting to preview Word document...');
+                            
+                            // Create a temporary file URL for external services
+                            const tempFileName = 'resume_' + Date.now() + '.docx';
+                            
+                            // Try multiple preview services
+                            content.innerHTML = `
+                                <div style="width: 100%; height: 100%; position: relative;">
+                                    <div style="background: #556B2F; color: white; padding: 10px; text-align: center; border-radius: 8px 8px 0 0;">
+                                        <h4 style="margin: 0; font-size: 16px;">📄 Resume Preview</h4>
+                                    </div>
+                                    
+                                    <div id="preview-container" style="width: 100%; height: calc(100% - 100px); position: relative;">
+                                        <!-- Loading message -->
+                                        <div id="loading-preview" style="text-align: center; padding: 50px; color: #666;">
+                                            <h3>🔄 Loading Preview...</h3>
+                                            <p>Preparing your resume for viewing...</p>
+                                        </div>
+                                        
+                                        <!-- Office Online Viewer attempt -->
+                                        <iframe id="office-preview" 
+                                                style="width: 100%; height: 100%; border: none; display: none;" 
+                                                title="Resume Preview">
+                                        </iframe>
+                                        
+                                        <!-- Google Docs Viewer attempt -->
+                                        <iframe id="google-preview" 
+                                                style="width: 100%; height: 100%; border: none; display: none;" 
+                                                title="Resume Preview">
+                                        </iframe>
+                                        
+                                        <!-- Fallback: Convert to image preview -->
+                                        <div id="image-preview" style="width: 100%; height: 100%; overflow-y: auto; display: none; padding: 20px; background: white;">
+                                            <!-- Document preview will be inserted here -->
+                                        </div>
+                                        
+                                        <!-- Final fallback -->
+                                        <div id="fallback-preview" style="display: none; text-align: center; padding: 50px; color: #666;">
+                                            <div style="background: #556B2F; color: white; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 36px;">
+                                                📄
+                                            </div>
+                                            <h3>Word Document Preview</h3>
+                                            <p style="margin-bottom: 20px;">Unable to display preview. You can download to view the full resume.</p>
+                                            <button onclick="downloadFromBlob('${blobUrl}', 'resume.docx')" 
+                                                    style="background: #556B2F; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                                                📥 Download Resume
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 0 0 8px 8px; border-top: 1px solid #dee2e6;">
+                                        <button onclick="window.open('${blobUrl}', '_blank')" 
+                                                style="background: #28a745; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; margin: 0 5px; font-size: 14px;">
+                                            🔍 Open in New Tab
+                                        </button>
+                                        <button onclick="downloadFromBlob('${blobUrl}', 'resume.docx')" 
+                                                style="background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; margin: 0 5px; font-size: 14px;">
+                                            ⬇️ Download
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Try to preview the document using multiple methods
+                            setTimeout(() => {
+                                tryDocumentPreview(blobUrl, blob);
+                            }, 500);
+                        } else {
+                            // For other document types
+                            content.innerHTML = `
+                                <div style="text-align: center; padding: 50px; color: #666;">
+                                    <h3>📄 Document</h3>
+                                    <p>This document type (${mimeType}) cannot be displayed inline.<br>
+                                    Click below to download and open in the appropriate application.</p>
+                                    <div style="margin-top: 30px;">
+                                        <button onclick="downloadFromBlob('${blobUrl}', 'document')" 
+                                                style="background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                                            ⬇️ Download Document
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Clean up blob URL after some time to prevent memory leaks
+                        setTimeout(() => {
+                            URL.revokeObjectURL(blobUrl);
+                        }, 300000); // 5 minutes
+                        
+                    } catch (error) {
+                        console.error('Error processing base64 data:', error);
+                        showErrorMessage();
+                    }
+                } else {
+                    console.error('Invalid data URL format');
+                    showErrorMessage();
+                }
+            } else if (resumeUrl && resumeUrl.startsWith('http')) {
+                // For regular HTTP URLs
+                console.log('Processing HTTP URL...');
+                content.innerHTML = `
+                    <iframe src="${resumeUrl}" 
+                            style="width: 100%; height: 100%; border: none; border-radius: 8px;" 
+                            title="Resume Viewer">
+                    </iframe>
+                `;
+            } else {
+                console.error('Invalid resume URL:', resumeUrl);
+                showErrorMessage();
+            }
+        }, 500);
+        
+        function showErrorMessage() {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 50px; color: #666;">
+                    <h3>❌ Unable to Display Resume</h3>
+                    <p>There was an issue loading your resume for viewing.</p>
+                    <div style="margin-top: 20px;">
+                        <button onclick="closeResumeModal()" 
+                                style="background: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin: 5px;">
+                            ✕ Close
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    // Helper function for downloading from blob URL
+    function downloadFromBlob(blobUrl, filename) {
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+    
+    // Function to try different document preview methods
+    function tryDocumentPreview(blobUrl, blob) {
+        console.log('Trying document preview methods...');
+        
+        // Method 1: Try to upload to a temporary service and use external viewers
+        uploadToTempService(blob)
+            .then(publicUrl => {
+                if (publicUrl) {
+                    console.log('Got public URL, trying external viewers...');
+                    tryExternalViewers(publicUrl);
+                } else {
+                    tryOfflinePreview(blob);
+                }
+            })
+            .catch(error => {
+                console.log('Upload failed, trying offline methods...', error);
+                tryOfflinePreview(blob);
+            });
+    }
+    
+    // Try to create a temporary public URL for the document
+    function uploadToTempService(blob) {
+        return new Promise((resolve, reject) => {
+            // Try using a free temporary file hosting service
+            const formData = new FormData();
+            formData.append('file', blob, 'resume.docx');
+            
+            // Use tmpfiles.org or similar service (this is just an example)
+            fetch('https://tmpfiles.org/api/v1/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.url) {
+                    resolve(data.url);
+                } else {
+                    reject('No URL returned');
+                }
+            })
+            .catch(error => {
+                console.log('Temp upload failed:', error);
+                reject(error);
+            });
+        });
+    }
+    
+    // Try external document viewers with public URL
+    function tryExternalViewers(publicUrl) {
+        const loadingEl = document.getElementById('loading-preview');
+        const officeEl = document.getElementById('office-preview');
+        const googleEl = document.getElementById('google-preview');
+        const fallbackEl = document.getElementById('fallback-preview');
+        
+        // Hide loading
+        if (loadingEl) loadingEl.style.display = 'none';
+        
+        // Try Office Online first
+        const officeUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(publicUrl)}`;
+        if (officeEl) {
+            officeEl.src = officeUrl;
+            officeEl.style.display = 'block';
+            
+            // If Office fails, try Google
+            officeEl.onerror = () => {
+                console.log('Office viewer failed, trying Google...');
+                officeEl.style.display = 'none';
+                
+                const googleUrl = `https://docs.google.com/gview?url=${encodeURIComponent(publicUrl)}&embedded=true`;
+                if (googleEl) {
+                    googleEl.src = googleUrl;
+                    googleEl.style.display = 'block';
+                    
+                    // If Google also fails, show fallback
+                    googleEl.onerror = () => {
+                        console.log('Google viewer also failed, showing fallback...');
+                        googleEl.style.display = 'none';
+                        if (fallbackEl) fallbackEl.style.display = 'block';
+                    };
+                }
+            };
+        }
+    }
+    
+    // Try offline preview methods (convert to images, extract text, etc.)
+    function tryOfflinePreview(blob) {
+        console.log('Trying offline preview methods...');
+        
+        const loadingEl = document.getElementById('loading-preview');
+        const imagePreviewEl = document.getElementById('image-preview');
+        const fallbackEl = document.getElementById('fallback-preview');
+        
+        // Hide loading
+        if (loadingEl) loadingEl.style.display = 'none';
+        
+        // Try to read the document using mammoth.js (for docx files)
+        if (window.mammoth) {
+            console.log('Using mammoth.js to extract content...');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                mammoth.convertToHtml({ arrayBuffer: e.target.result })
+                    .then(function(result) {
+                        if (imagePreviewEl) {
+                            imagePreviewEl.innerHTML = `
+                                <div style="max-width: 800px; margin: 0 auto; font-family: 'Times New Roman', serif; line-height: 1.6; color: #333;">
+                                    <div style="background: #f8f9fa; padding: 10px; margin-bottom: 20px; border-radius: 6px; text-align: center;">
+                                        <small style="color: #666;">📄 Document Preview (Converted from Word)</small>
+                                    </div>
+                                    ${result.value}
+                                </div>
+                            `;
+                            imagePreviewEl.style.display = 'block';
+                            console.log('Successfully displayed document content!');
+                        }
+                    })
+                    .catch(function(error) {
+                        console.log('Mammoth conversion failed:', error);
+                        showFinalFallback();
+                    });
+            };
+            reader.readAsArrayBuffer(blob);
+        } else {
+            // Load mammoth.js dynamically
+            console.log('Loading mammoth.js library...');
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js';
+            script.onload = () => {
+                console.log('Mammoth.js loaded, retrying...');
+                tryOfflinePreview(blob);
+            };
+            script.onerror = () => {
+                console.log('Failed to load mammoth.js, showing fallback...');
+                showFinalFallback();
+            };
+            document.head.appendChild(script);
+        }
+        
+        function showFinalFallback() {
+            if (imagePreviewEl) imagePreviewEl.style.display = 'none';
+            if (fallbackEl) fallbackEl.style.display = 'block';
+        }
     }
 
     function closeResumeModal() {
@@ -673,61 +1011,126 @@
     function updateCertificateDisplay() {
         if (currentCertificates.length === 0) return;
         
-        const certificate = currentCertificates[currentCertificateIndex];
-        const isImage = certificate.type.startsWith('image/');
+        const certificatesPerPage = 3;
+        const totalPages = Math.ceil(currentCertificates.length / certificatesPerPage);
+        const currentPage = Math.floor(currentCertificateIndex / certificatesPerPage);
+        const startIndex = currentPage * certificatesPerPage;
+        const endIndex = Math.min(startIndex + certificatesPerPage, currentCertificates.length);
         
-        document.getElementById('certificatesDisplay').innerHTML = `
-            <div class="certificate-item" style="text-align: center; padding: 20px;">
-                <div class="certificate-preview" style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 20px;">
-                    ${isImage ? 
-                        `<img src="${certificate.url}" alt="${certificate.name}" style="max-width: 100%; max-height: 300px; object-fit: contain;">` :
-                        `<div style="padding: 40px; background: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 8px;">
-                            <div style="font-size: 48px; margin-bottom: 15px;">📄</div>
-                            <h4 style="margin: 0 0 10px 0; color: #495057;">PDF Certificate</h4>
-                            <p style="margin: 0; color: #6c757d; font-size: 14px;">${certificate.name}</p>
-                        </div>`
-                    }
+        // Get certificates for current page
+        const currentPageCertificates = currentCertificates.slice(startIndex, endIndex);
+        
+        // Create sliding window with 3 certificates per view in one row
+        let certificatesHTML = '<div style="display: flex; flex-direction: row; gap: 20px; padding: 20px; min-height: 300px; justify-content: flex-start; align-items: stretch;">';
+        
+        currentPageCertificates.forEach((certificate, index) => {
+            const isImage = certificate.type.startsWith('image/');
+            
+            certificatesHTML += `
+                <div class="certificate-item" style="text-align: center; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.3s ease; flex: 1; min-width: 280px; max-width: 350px;">
+                    <div class="certificate-preview" style="height: 180px; overflow: hidden; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                        ${isImage ? 
+                            `<img src="${certificate.url}" alt="${certificate.name}" style="max-width: 100%; max-height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">` :
+                            `<div style="text-align: center; color: #6c757d;">
+                                <div style="font-size: 36px; margin-bottom: 8px;">📄</div>
+                                <h4 style="margin: 0; color: #495057; font-size: 14px;">PDF Certificate</h4>
+                                <p style="margin: 3px 0 0 0; font-size: 11px;">Click to view</p>
+                            </div>`
+                        }
+                    </div>
+                    
+                    <div class="certificate-info" style="padding: 12px;">
+                        <h4 style="margin: 0 0 8px 0; color: #333; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${certificate.name || 'Certificate'}">${certificate.name || 'Certificate'}</h4>
+                        <div class="certificate-actions" style="display: flex; justify-content: center;">
+                            <button onclick="viewCertificate('${certificate.url}', '${certificate.name}')" class="view-cert-btn" style="background: #556B2F; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 600; transition: background 0.3s ease;" onmouseover="this.style.background='#4a5d28'" onmouseout="this.style.background='#556B2F'">
+                                👁️ View
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="certificate-info" style="margin-bottom: 20px;">
-                </div>
-                
-                <div class="certificate-actions" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                    <button onclick="viewCertificate('${certificate.url}', '${certificate.name}')" class="view-cert-btn" style="background: #556B2F; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
-                        👁️ View
-                    </button>
-                    <a href="${certificate.url}" target="_blank" class="download-cert-btn" style="background: #556B2F; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600;">
-                        ⬇️ Download
-                    </a>
-                    <button onclick="removeCertificate(${currentCertificateIndex})" class="remove-cert-btn" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
-                        🗑️ Remove
-                    </button>
-                </div>
-            </div>
-        `;
+            `;
+        });
+        
+
+        
+        certificatesHTML += '</div>';
+        
+
+        
+        document.getElementById('certificatesDisplay').innerHTML = certificatesHTML;
     }
 
     function setupCertificateNavigation() {
         const prevBtn = document.getElementById('prevCertBtn');
         const nextBtn = document.getElementById('nextCertBtn');
         
-        if (currentCertificates.length <= 1) {
-            prevBtn.style.display = 'none';
-            nextBtn.style.display = 'none';
+        const certificatesPerPage = 3;
+        const totalPages = Math.ceil(currentCertificates.length / certificatesPerPage);
+        
+        if (currentCertificates.length <= certificatesPerPage) {
+            // Hide navigation if 3 or fewer certificates
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
         } else {
-            prevBtn.style.display = 'block';
-            nextBtn.style.display = 'block';
+            // Show navigation for multiple pages
+            if (prevBtn) {
+                prevBtn.style.display = 'flex';
+                prevBtn.style.alignItems = 'center';
+                prevBtn.style.justifyContent = 'center';
+            }
+            if (nextBtn) {
+                nextBtn.style.display = 'flex';
+                nextBtn.style.alignItems = 'center';
+                nextBtn.style.justifyContent = 'center';
+            }
             
             prevBtn.onclick = () => {
-                currentCertificateIndex = (currentCertificateIndex - 1 + currentCertificates.length) % currentCertificates.length;
+                const currentPage = Math.floor(currentCertificateIndex / certificatesPerPage);
+                if (currentPage > 0) {
+                    currentCertificateIndex = (currentPage - 1) * certificatesPerPage;
+                } else {
+                    // Go to last page
+                    currentCertificateIndex = (totalPages - 1) * certificatesPerPage;
+                }
                 updateCertificateDisplay();
+                updateNavigationButtons();
             };
             
             nextBtn.onclick = () => {
-                currentCertificateIndex = (currentCertificateIndex + 1) % currentCertificates.length;
+                const currentPage = Math.floor(currentCertificateIndex / certificatesPerPage);
+                if (currentPage < totalPages - 1) {
+                    currentCertificateIndex = (currentPage + 1) * certificatesPerPage;
+                } else {
+                    // Go to first page
+                    currentCertificateIndex = 0;
+                }
                 updateCertificateDisplay();
+                updateNavigationButtons();
             };
         }
+        
+        updateNavigationButtons();
+    }
+    
+    function updateNavigationButtons() {
+        const prevBtn = document.getElementById('prevCertBtn');
+        const nextBtn = document.getElementById('nextCertBtn');
+        
+        if (!prevBtn || !nextBtn) return;
+        
+        const certificatesPerPage = 3;
+        const totalPages = Math.ceil(currentCertificates.length / certificatesPerPage);
+        const currentPage = Math.floor(currentCertificateIndex / certificatesPerPage);
+        
+        // Make sure buttons are always visible and functional
+        prevBtn.style.opacity = '1';
+        prevBtn.style.cursor = 'pointer';
+        nextBtn.style.opacity = '1';
+        nextBtn.style.cursor = 'pointer';
+        
+        // Add tooltips
+        prevBtn.title = 'Previous 3 certificates';
+        nextBtn.title = 'Next 3 certificates';
     }
 
     async function removeCertificate(index) {
@@ -1284,12 +1687,12 @@
             const linkedinLink = document.createElement('a');
             linkedinLink.href = profile.linkedinUrl;
             linkedinLink.target = '_blank';
+            linkedinLink.title = 'LinkedIn Profile'; // Tooltip for accessibility
             linkedinLink.classList.add('social-link', 'linkedin');
             linkedinLink.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="currentColor">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px;">
                     <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                 </svg>
-                <span>LinkedIn</span>
             `;
             socialLinksDiv.appendChild(linkedinLink);
             hasLinks = true;
@@ -1300,12 +1703,12 @@
             const githubLink = document.createElement('a');
             githubLink.href = profile.githubUrl;
             githubLink.target = '_blank';
+            githubLink.title = 'GitHub Profile'; // Tooltip for accessibility
             githubLink.classList.add('social-link', 'github');
             githubLink.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="currentColor">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px;">
                     <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                 </svg>
-                <span>GitHub</span>
             `;
             socialLinksDiv.appendChild(githubLink);
             hasLinks = true;

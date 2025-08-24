@@ -74,8 +74,27 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="save-btn">Save Changes</button>
+                    <button type="submit" class="save-btn" id="saveBtn">Save Changes</button>
                     <button type="button" onclick="window.location.href='profile.html'" class="cancel-btn">Cancel</button>
+                </div>
+                
+                <!-- Progress indicator -->
+                <div id="progressContainer" style="display: none; margin-top: 20px; background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-left: 4px solid #556B2F;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 id="progressTitle" style="margin: 0; color: #333; font-size: 18px;">Saving Profile...</h4>
+                        <span id="progressPercent" style="font-size: 16px; font-weight: bold; color: #556B2F;">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 12px; background-color: #e9ecef; border-radius: 6px; overflow: hidden; margin-bottom: 20px;">
+                        <div id="progressBar" style="height: 100%; background: linear-gradient(90deg, #556B2F 0%, #7fb069 100%); width: 0%; transition: width 0.5s ease; border-radius: 6px;"></div>
+                    </div>
+                    <div id="progressSteps" style="display: flex; flex-direction: column; gap: 8px;">
+                        <div class="progress-step" id="step1" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; background: #f8f9fa; color: #6c757d; transition: all 0.3s ease; border-left: 3px solid #dee2e6;">📝 Validating form data...</div>
+                        <div class="progress-step" id="step2" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; background: #f8f9fa; color: #6c757d; transition: all 0.3s ease; border-left: 3px solid #dee2e6;">📸 Processing photo...</div>
+                        <div class="progress-step" id="step3" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; background: #f8f9fa; color: #6c757d; transition: all 0.3s ease; border-left: 3px solid #dee2e6;">📄 Uploading resume...</div>
+                        <div class="progress-step" id="step4" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; background: #f8f9fa; color: #6c757d; transition: all 0.3s ease; border-left: 3px solid #dee2e6;">🏆 Uploading certificates...</div>
+                        <div class="progress-step" id="step5" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; background: #f8f9fa; color: #6c757d; transition: all 0.3s ease; border-left: 3px solid #dee2e6;">💾 Saving to database...</div>
+                        <div class="progress-step" id="step6" style="padding: 8px 12px; border-radius: 6px; font-size: 14px; background: #f8f9fa; color: #6c757d; transition: all 0.3s ease; border-left: 3px solid #dee2e6;">✅ Profile updated successfully!</div>
+                    </div>
                 </div>
             </form>
         </main>
@@ -377,8 +396,16 @@
                 e.preventDefault();
                 
                 try {
+                    // Start progress indicator
+                    showProgressIndicator();
+                    
+                    // Step 1: Validate form data
+                    updateProgress(1, 15, 'Validating form data...');
+                    await delay(500);
+                    
                     const currentUser = JSON.parse(sessionStorage.getItem('renx_cached_user'));
                     if (!currentUser) {
+                        hideProgressIndicator();
                         alert('Please login again');
                         window.location.href = 'login.html';
                         return;
@@ -391,6 +418,14 @@
                     const photoFile = formData.get('profilePhoto');
                     const linkedinUrl = formData.get('linkedinUrl');
                     const githubUrl = formData.get('githubUrl');
+                    
+                    // Step 2: Process photo
+                    updateProgress(2, 30, 'Processing photo...');
+                    await delay(500);
+                    
+                    // Step 3: Fetch existing profile
+                    updateProgress(3, 50, 'Fetching existing profile...');
+                    await delay(300);
                     
                     // Get current profile
                     const profileQuery = `*[_type == "profile" && user_id == $userId][0]`;
@@ -426,11 +461,19 @@
                             updatedAt: new Date().toISOString()
                         };
                         
+                        // Step 4: Process photo upload
+                        updateProgress(4, 70, 'Uploading photo...');
+                        await delay(300);
+                        
                         // Handle photo upload
                         if (photoFile && photoFile.size > 0) {
                             const photoUrl = await handlePhotoUpload(photoFile);
                             updatedProfile.photoUrl = photoUrl;
                         }
+                        
+                        // Step 5: Save to database
+                        updateProgress(5, 85, 'Saving to database...');
+                        await delay(500);
                         
                         await client.createOrReplace(updatedProfile);
                     }
@@ -439,11 +482,17 @@
                     const updatedUser = { ...currentUser, fullName: fullName };
                     sessionStorage.setItem('renx_cached_user', JSON.stringify(updatedUser));
                     
+                    // Step 6: Complete
+                    updateProgress(6, 100, 'Profile updated successfully!');
+                    await delay(1000);
+                    
+                    hideProgressIndicator();
                     alert('Profile updated successfully!');
                     window.location.href = 'profile.html';
                     
                 } catch (error) {
                     console.error('Error updating profile:', error);
+                    hideProgressIndicator();
                     alert('Error updating profile: ' + error.message);
                 }
             });
@@ -458,6 +507,90 @@
                 };
                 reader.readAsDataURL(file);
             });
+        }
+
+        // Progress indicator functions
+        function showProgressIndicator() {
+            const progressContainer = document.getElementById('progressContainer');
+            const saveBtn = document.getElementById('saveBtn');
+            
+            // Show progress container
+            progressContainer.style.display = 'block';
+            
+            // Disable save button and show loading state
+            saveBtn.disabled = true;
+            saveBtn.style.background = '#6c757d';
+            saveBtn.style.cursor = 'not-allowed';
+            saveBtn.innerHTML = '⏳ Saving...';
+            
+            // Reset all steps
+            for (let i = 1; i <= 6; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.style.background = '#f8f9fa';
+                step.style.color = '#6c757d';
+                step.style.borderLeftColor = '#dee2e6';
+                step.style.fontWeight = 'normal';
+            }
+            
+            // Reset progress bar
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressPercent').textContent = '0%';
+        }
+
+        function updateProgress(stepNumber, percentage, message) {
+            // Update progress bar
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressPercent').textContent = percentage + '%';
+            
+            // Update title if provided
+            if (message) {
+                document.getElementById('progressTitle').textContent = message;
+            }
+            
+            // Update step states
+            for (let i = 1; i <= 6; i++) {
+                const step = document.getElementById(`step${i}`);
+                if (i < stepNumber) {
+                    // Completed step
+                    step.style.background = '#d4edda';
+                    step.style.color = '#155724';
+                    step.style.borderLeftColor = '#28a745';
+                    step.style.fontWeight = 'normal';
+                    if (!step.textContent.includes('✓')) {
+                        step.textContent = step.textContent.replace(/✓/g, '') + ' ✓';
+                    }
+                } else if (i === stepNumber) {
+                    // Active step
+                    step.style.background = '#e8f5e8';
+                    step.style.color = '#2d5016';
+                    step.style.borderLeftColor = '#556B2F';
+                    step.style.fontWeight = '600';
+                } else {
+                    // Pending step
+                    step.style.background = '#f8f9fa';
+                    step.style.color = '#6c757d';
+                    step.style.borderLeftColor = '#dee2e6';
+                    step.style.fontWeight = 'normal';
+                }
+            }
+        }
+
+        function hideProgressIndicator() {
+            const progressContainer = document.getElementById('progressContainer');
+            const saveBtn = document.getElementById('saveBtn');
+            
+            // Hide progress container
+            progressContainer.style.display = 'none';
+            
+            // Reset save button
+            saveBtn.disabled = false;
+            saveBtn.style.background = '#556B2F';
+            saveBtn.style.cursor = 'pointer';
+            saveBtn.innerHTML = 'Save Changes';
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
         
         // Show photo preview

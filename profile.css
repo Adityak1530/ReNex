@@ -143,6 +143,92 @@ body, html {
   font-size: 0.9rem;
 }
 
+/* Social Media Section Styles */
+.social-media-section {
+  margin-top: 15px !important;
+}
+
+.social-media-section h4 {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  margin: 0 0 8px 0 !important;
+  color: #333 !important;
+}
+
+.social-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.social-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  color: #495057;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.social-links a:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* LinkedIn specific styling */
+.social-links a.linkedin {
+  background-color: #0077b5;
+  border-color: #0077b5;
+  color: white;
+}
+
+.social-links a.linkedin:hover {
+  background-color: #005885;
+  border-color: #005885;
+}
+
+/* GitHub specific styling */
+.social-links a.github {
+  background-color: #333;
+  border-color: #333;
+  color: white;
+}
+
+.social-links a.github:hover {
+  background-color: #24292e;
+  border-color: #24292e;
+}
+
+/* Twitter styling (if needed in future) */
+.social-links a.twitter {
+  background-color: #1da1f2;
+  border-color: #1da1f2;
+  color: white;
+}
+
+.social-links a.twitter:hover {
+  background-color: #1991db;
+  border-color: #1991db;
+}
+
+/* Instagram styling (if needed in future) */
+.social-links a.instagram {
+  background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+  border-color: #e6683c;
+  color: white;
+}
+
+.social-links a.instagram:hover {
+  opacity: 0.9;
+}
+
 /* Mobile responsive styles for copy button */
 @media (max-width: 768px) {
   .copy-icon-wrapper {
@@ -179,6 +265,22 @@ body, html {
   
   .rex-id-container {
     gap: 12px;
+  }
+  
+  /* Social media mobile adjustments */
+  .social-links {
+    gap: 6px;
+  }
+  
+  .social-links a {
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+  }
+  
+  .social-links a svg {
+    width: 18px !important;
+    height: 18px !important;
   }
 }
 
