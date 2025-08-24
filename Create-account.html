@@ -82,7 +82,7 @@
           
           // Use the API proxy instead of direct Sanity API
           const baseUrl = window.location.origin;
-          const mutationUrl = `${baseUrl}/api/sanity-proxy/mutation`;
+          const mutationUrl = `${baseUrl}/api/sanity-proxy`;
           
           // Add cache-busting parameter for retries
           const url = retryCount > 0 ? `${mutationUrl}?_cb=${Date.now()}` : mutationUrl;
@@ -250,7 +250,7 @@
           
           // Use the API proxy instead of direct Sanity API
           const baseUrl = window.location.origin;
-          const mutationUrl = `${baseUrl}/api/sanity-proxy/mutation`;
+          const mutationUrl = `${baseUrl}/api/sanity-proxy`;
           
           // Add cache-busting parameter for retries
           const url = retryCount > 0 ? `${mutationUrl}?_cb=${Date.now()}` : mutationUrl;
