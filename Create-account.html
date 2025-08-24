@@ -122,14 +122,20 @@
             
             // If we've exhausted retries or it's not a retryable error, handle the error
             let errorMessage = `HTTP ${response.status}`;
+            // Clone the response before reading its body
+            const responseClone = response.clone();
             try {
               // Try to parse error as JSON
-              const errorJson = await response.json();
+              const errorJson = await responseClone.json();
               errorMessage += `: ${JSON.stringify(errorJson)}`;
             } catch (e) {
               // Fallback to text if not JSON
-              const errorText = await response.text();
-              errorMessage += `: ${errorText}`;
+              try {
+                const errorText = await responseClone.text();
+                errorMessage += `: ${errorText}`;
+              } catch (textError) {
+                errorMessage += `: Unable to read response body`;
+              }
             }
             throw new Error(errorMessage);
           }
@@ -208,14 +214,20 @@
             
             // If we've exhausted retries or it's not a retryable error, handle the error
             let errorMessage = `HTTP ${response.status}`;
+            // Clone the response before reading its body
+            const responseClone = response.clone();
             try {
               // Try to parse error as JSON
-              const errorJson = await response.json();
+              const errorJson = await responseClone.json();
               errorMessage += `: ${JSON.stringify(errorJson)}`;
             } catch (e) {
               // Fallback to text if not JSON
-              const errorText = await response.text();
-              errorMessage += `: ${errorText}`;
+              try {
+                const errorText = await responseClone.text();
+                errorMessage += `: ${errorText}`;
+              } catch (textError) {
+                errorMessage += `: Unable to read response body`;
+              }
             }
             throw new Error(errorMessage);
           }
