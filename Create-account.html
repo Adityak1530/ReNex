@@ -80,11 +80,18 @@
           console.log('Creating document via direct API:', doc);
           console.log('Retry attempt:', retryCount);
           
+          // Use the API proxy instead of direct Sanity API
+          const baseUrl = window.location.origin;
+          const mutationUrl = `${baseUrl}/api/sanity-proxy/mutation`;
+          
+          // Add cache-busting parameter for retries
+          const url = retryCount > 0 ? `${mutationUrl}?_cb=${Date.now()}` : mutationUrl;
+          
           // Create abort controller for timeout
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
           
-          const response = await fetch(this.baseUrl, {
+          const response = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -229,11 +236,18 @@
           console.log('Creating or replacing document via direct API:', doc);
           console.log('Retry attempt:', retryCount);
           
+          // Use the API proxy instead of direct Sanity API
+          const baseUrl = window.location.origin;
+          const mutationUrl = `${baseUrl}/api/sanity-proxy/mutation`;
+          
+          // Add cache-busting parameter for retries
+          const url = retryCount > 0 ? `${mutationUrl}?_cb=${Date.now()}` : mutationUrl;
+          
           // Create abort controller for timeout
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
           
-          const response = await fetch(this.baseUrl, {
+          const response = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
