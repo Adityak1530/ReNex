@@ -7,16 +7,50 @@
     <link rel="icon" type="image/x-icon" href="logo.png">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="guest.css">
-    <style>
-        /* Enhanced Animations */
-        .fade-in {
-            animation: fadeIn 0.6s ease-in;
-        }
+        <style>
+            /* Force modal positioning to prevent flash and positioning issues */
+            #resumeModal {
+                position: fixed !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                z-index: 1000 !important;
+                width: auto !important;
+                height: auto !important;
+                max-width: 90vw !important;
+                max-height: 90vh !important;
+                min-width: 300px !important;
+                min-height: 200px !important;
+            }
+            
+            /* Prevent background scrolling when modal is open */
+            body.modal-open {
+                overflow: hidden !important;
+                position: fixed !important;
+                width: 100% !important;
+            }
+            
+            /* Ensure modal content can scroll independently */
+            #resumeContent {
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                max-height: 100% !important;
+            }
+            
+            /* Prevent scroll events from bubbling up */
+            #resumeModal * {
+                overscroll-behavior: contain !important;
+            }
+            
+            /* Enhanced Animations */
+            .fade-in {
+                animation: fadeIn 0.6s ease-in;
+            }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
 
         /* New Two-Column Profile Layout - Matching Profile Page */
         .profile-container {
@@ -266,6 +300,46 @@
             display: flex;
             flex-direction: column;
             animation: slideIn 0.3s ease;
+        }
+
+        .resume-modal-header {
+            background: #556B2F;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .resume-modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close-resume-btn {
+            background: none !important;
+            border: none !important;
+            color: white !important;
+            font-size: 28px !important;
+            cursor: pointer !important;
+            padding: 0 !important;
+            width: 30px !important;
+            height: 30px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 50% !important;
+            transition: background 0.3s ease !important;
+        }
+
+        .close-resume-btn:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         /* Social Sharing */
@@ -622,12 +696,6 @@
             </div>
 
             <div class="profile-content">
-                <!-- About Section -->
-                <div class="section-card">
-                    <div class="section-content">
-                        <p id="profile-bio"></p>
-                    </div>
-                </div>
 
                 <!-- Resume Section -->
                 <div class="section-card">
@@ -668,12 +736,9 @@
                 <div id="resumeContent" style="width: 100%; height: 100%; border: none; border-radius: 8px;"></div>
             </div>
             
-            <!-- Modal Footer with Enhanced Controls -->
+            <!-- Modal Footer with Download and Open Options -->
             <div class="resume-modal-footer" style="padding: 20px; border-top: 1px solid #e9ecef;">
                 <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
-                    <button onclick="fullscreenView()" style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; background: #556B2F; color: white;">🖥️ Fullscreen</button>
-                    <button onclick="zoomIn()" style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; background: #6c757d; color: white;">🔍 Zoom In</button>
-                    <button onclick="zoomOut()" style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; background: #6c757d; color: white;">🔍 Zoom Out</button>
                     <button onclick="closeResumeModal()" style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; background: #6c757d; color: white;">❌ Close</button>
                 </div>
             </div>
@@ -1042,19 +1107,19 @@
                     </div>
                     
                     <div class="resume-content" style="padding: 30px;">
-                        <div class="resume-preview" style="background: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 8px; padding: 40px; text-align: center; margin-bottom: 20px;">
-                            <div class="resume-icon" style="font-size: 48px; margin-bottom: 15px;">📄</div>
-                            <h4 style="margin: 0 0 10px 0; color: #495057;">Resume Preview</h4>
-                            <p style="margin: 0; color: #6c757d; font-size: 14px;">Click below to view the full resume content</p>
-                        </div>
-                        
-                        <div class="resume-actions" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                            <button onclick="viewResume('${profile.resumeUrl}')" style="background: #556B2F; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s ease;">
-                                👁️ View Resume
+                        <div class="resume-file-card" style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin: 0 auto; max-width: 400px; border: 1px solid #e9ecef;">
+                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                <div style="font-size: 24px; color: #6c757d; margin-right: 12px;">📄</div>
+                                <div>
+                                    <div style="font-weight: 600; color: #333; font-size: 16px;">Resume File</div>
+                                    <div style="color: #6c757d; font-size: 14px; margin-top: 2px;">Manage your resume</div>
+                                </div>
+                            </div>
+                            
+                            <button onclick="viewResume('${profile.resumeUrl}')" 
+                                    style="background: #556B2F; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s ease; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                👁️ View
                             </button>
-                            <a href="${profile.resumeUrl}" target="_blank" style="background: #556B2F; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; transition: all 0.3s ease;">
-                                ⬇️ Download Resume
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -1091,12 +1156,9 @@
                         </div>
                         
                         <div class="certificate-actions" style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
-                            <button onclick="viewCertificate('${cert.url}', '${cert.name}')" style="background: #556B2F; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; width: 140px; transition: all 0.3s ease; box-shadow: 0 2px 6px rgba(85, 107, 47, 0.2);">
+                            <button onclick="viewCurrentCertificate()" style="background: #556B2F; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; width: 140px; transition: all 0.3s ease; box-shadow: 0 2px 6px rgba(85, 107, 47, 0.2);">
                                 👁️ View
                             </button>
-                            <a href="${cert.url}" target="_blank" style="background: #556B2F; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; width: 140px; display: inline-block; transition: all 0.3s ease; box-shadow: 0 2px 6px rgba(85, 107, 47, 0.2);">
-                                ⬇️ Download
-                            </a>
                         </div>
                     </div>
                     
@@ -1119,84 +1181,944 @@
             currentCertIndex = (currentCertIndex + direction + certificates.length) % certificates.length;
             updateCertificateDisplay();
         };
+        
+        // Function to get current certificate for modal viewing
+        function getCurrentCertificate() {
+            if (certificates && certificates.length > 0 && currentCertIndex >= 0 && currentCertIndex < certificates.length) {
+                return certificates[currentCertIndex];
+            }
+            return null;
+        }
+        
+        // Enhanced view certificate function that works with current certificate
+        function viewCurrentCertificate() {
+            const currentCert = getCurrentCertificate();
+            if (currentCert) {
+                viewCertificate(currentCert.url, currentCert.name);
+            } else {
+                // Show error if no certificate is available
+                const modal = document.getElementById('resumeModal');
+                const content = document.getElementById('resumeContent');
+                const modalTitle = document.getElementById('modalTitle');
+                
+                modalTitle.textContent = '🏆 Certificate Viewer';
+                modal.style.display = 'block';
+                disableBackgroundScrolling();
+                
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 50px; color: #666;">
+                        <h3>❌ No Certificate Available</h3>
+                        <p>No certificate is currently selected for viewing.</p>
+                        <div style="margin-top: 20px;">
+                            <button onclick="closeResumeModal()" 
+                                    style="background: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin: 5px;">
+                                ✕ Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
 
-        // Enhanced resume viewer
+        // Simple working resume viewer
         function viewResume(resumeUrl) {
             const modal = document.getElementById('resumeModal');
             const content = document.getElementById('resumeContent');
             const modalTitle = document.getElementById('modalTitle');
             
             modalTitle.textContent = '📄 Resume Viewer';
-            content.innerHTML = `
-                <iframe src="${resumeUrl}" 
-                        style="width: 100%; height: 100%; border: none; border-radius: 8px;" 
-                        title="Resume Viewer">
-                </iframe>
-            `;
             
+            // Force modal positioning BEFORE showing to prevent flash
+            modal.style.position = 'fixed';
+            modal.style.top = '50%';
+            modal.style.left = '50%';
+            modal.style.transform = 'translate(-50%, -50%)';
+            modal.style.zIndex = '1000';
+            modal.style.width = 'auto';
+            modal.style.height = 'auto';
+            modal.style.maxWidth = '90vw';
+            modal.style.maxHeight = '90vh';
+            modal.style.minWidth = '300px';
+            modal.style.minHeight = '200px';
+            
+            // Force a reflow to ensure positioning is applied
+            modal.offsetHeight;
+            
+            // Show the modal
             modal.style.display = 'block';
+            
+            // Disable background scrolling when modal is open
+            disableBackgroundScrolling();
+            
+            // Check if it's a data URL (base64 encoded file)
+            if (resumeUrl && resumeUrl.startsWith('data:')) {
+                try {
+                    // Extract the base64 data and MIME type
+                    const mimeMatch = resumeUrl.match(/data:([^;]+);base64,(.+)/);
+                    if (mimeMatch) {
+                        const mimeType = mimeMatch[1];
+                        const base64Data = mimeMatch[2];
+                        
+                        // Convert base64 to binary
+                        const binaryString = atob(base64Data);
+                        const bytes = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i++) {
+                            bytes[i] = binaryString.charCodeAt(i);
+                        }
+                        
+                        // Create blob and URL
+                        const blob = new Blob([bytes], { type: mimeType });
+                        const blobUrl = URL.createObjectURL(blob);
+                        
+                        // Display based on file type
+                        if (mimeType.includes('pdf')) {
+                            // For PDF files
+                            content.innerHTML = `
+                                <div style="width: 100%; height: 100%; position: relative;">
+                                    <iframe src="${blobUrl}#toolbar=0" 
+                                            style="width: 100%; height: 100%; border: none; border-radius: 8px; display: block;" 
+                                            title="PDF Viewer">
+                                    </iframe>
+                                </div>
+                            `;
+                        } else if (mimeType.startsWith('image/')) {
+                            // For image files
+                            content.innerHTML = `
+                                <div style="width: 100%; height: 100%; position: relative;">
+                                    <img src="${blobUrl}" alt="Resume" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;">
+                                </div>
+                            `;
+                        } else if (mimeType.includes('word') || mimeType.includes('document') || mimeType.includes('officedocument')) {
+                            // For Word documents - try multiple preview methods (EXACT SAME AS PROFILE PAGE)
+                            console.log('Attempting to preview Word document...');
+                            
+                            // Create a temporary file URL for external services
+                            const tempFileName = 'resume_' + Date.now() + '.docx';
+                            
+                            // Try multiple preview services
+                            content.innerHTML = `
+                                <div style="width: 100%; height: 100%; position: relative;">
+                                    <div style="background: #556B2F; color: white; padding: 10px; text-align: center; border-radius: 8px 8px 0 0;">
+                                        <h4 style="margin: 0; font-size: 16px;">📄 Resume Preview</h4>
+                                    </div>
+                                    
+                                    <div id="preview-container" style="width: 100%; height: calc(100% - 100px); position: relative;">
+                                        <!-- Loading message -->
+                                        <div id="loading-preview" style="text-align: center; padding: 50px; color: #666;">
+                                            <h3>🔄 Loading Preview...</h3>
+                                            <p>Preparing your resume for viewing...</p>
+                                        </div>
+                                        
+                                        <!-- Office Online Viewer attempt -->
+                                        <iframe id="office-preview" 
+                                                style="width: 100%; height: 100%; border: none; display: none;" 
+                                                title="Resume Preview">
+                                        </iframe>
+                                        
+                                        <!-- Google Docs Viewer attempt -->
+                                        <iframe id="google-preview" 
+                                                style="width: 100%; height: 100%; border: none; display: none;" 
+                                                title="Resume Preview">
+                                        </iframe>
+                                        
+                                        <!-- Fallback: Convert to image preview -->
+                                        <div id="image-preview" style="width: 100%; height: 100%; overflow-y: auto; display: none; padding: 20px; background: white;">
+                                            <!-- Document preview will be inserted here -->
+                                        </div>
+                                        
+                                        <!-- Final fallback -->
+                                        <div id="fallback-preview" style="display: none; text-align: center; padding: 50px; color: #666;">
+                                            <div style="background: #556B2F; color: white; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 36px;">
+                                                📄
+                                            </div>
+                                            <h3>Word Document Preview</h3>
+                                            <p style="margin-bottom: 20px;">Unable to display preview. You can download to view the full resume.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Try to preview the document using multiple methods
+                            setTimeout(() => {
+                                tryDocumentPreview(blobUrl, blob);
+                            }, 500);
+                        } else {
+                            // For other document types
+                            content.innerHTML = `
+                                <div style="text-align: center; padding: 50px; color: #666;">
+                                    <h3>📄 Document</h3>
+                                    <p>This document type (${mimeType}) cannot be displayed inline.<br>
+                                    Click below to download and open in the appropriate application.</p>
+                                </div>
+                            `;
+                        }
+                        
+                        // Update footer with download and open options
+                        updateModalFooter(blobUrl, 'resume', mimeType);
+                        
+                        // Clean up blob URL after some time to prevent memory leaks
+                        setTimeout(() => {
+                            URL.revokeObjectURL(blobUrl);
+                        }, 300000); // 5 minutes
+                        
+                    } else {
+                        showErrorMessage();
+                    }
+                } catch (error) {
+                    console.error('Error processing resume:', error);
+                    showErrorMessage();
+                }
+                        } else if (resumeUrl && resumeUrl.startsWith('http')) {
+                // For regular HTTP URLs
+                content.innerHTML = `
+                    <iframe src="${resumeUrl}" 
+                            style="width: 100%; height: 100%; border: none; border-radius: 8px;" 
+                            title="Resume Viewer">
+                </iframe>
+                `;
+                // Update footer with fullscreen, download and close options for external URLs
+                updateModalFooter(resumeUrl, 'resume', 'external');
+                
+                // Disable background scrolling for external URLs too
+                disableBackgroundScrolling();
+            } else {
+                showErrorMessage();
+            }
+            
+            function showErrorMessage() {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 50px; color: #666;">
+                        <h3>❌ Unable to Display Resume</h3>
+                        <p>There was an issue loading your resume for viewing.</p>
+                        <div style="margin-top: 20px;">
+                            <button onclick="closeResumeModal()" 
+                                    style="background: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin: 5px;">
+                                ✕ Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
         }
 
-        // Enhanced certificate viewer
+        // Enhanced certificate viewer - FIXED TO WORK WITH SLIDING WINDOW
         function viewCertificate(certificateUrl, certificateName) {
             const modal = document.getElementById('resumeModal');
             const content = document.getElementById('resumeContent');
             const modalTitle = document.getElementById('modalTitle');
             
+            // Set the modal title with the certificate name
             modalTitle.textContent = `🏆 ${certificateName}`;
             
-            if (certificateUrl.startsWith('data:image/')) {
-                content.innerHTML = `
-                    <img src="${certificateUrl}" alt="${certificateName}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;">
-                `;
-            } else {
+            // Force modal positioning BEFORE showing to prevent flash
+            modal.style.position = 'fixed';
+            modal.style.top = '50%';
+            modal.style.left = '50%';
+            modal.style.transform = 'translate(-50%, -50%)';
+            modal.style.zIndex = '1000';
+            modal.style.width = 'auto';
+            modal.style.height = 'auto';
+            modal.style.maxWidth = '60vw';
+            modal.style.maxHeight = '70vh';
+            modal.style.minWidth = '350px';
+            modal.style.minHeight = '250px';
+            
+            // Force a reflow to ensure positioning is applied
+            modal.offsetHeight;
+            
+            // Show the modal
+            modal.style.display = 'block';
+            
+            // Disable background scrolling when modal is open
+            disableBackgroundScrolling();
+            
+            // Check if it's a data URL (base64 encoded file)
+            if (certificateUrl && certificateUrl.startsWith('data:')) {
+                try {
+                    // Extract the base64 data and MIME type
+                    const mimeMatch = certificateUrl.match(/data:([^;]+);base64,(.+)/);
+                    if (mimeMatch) {
+                        const mimeType = mimeMatch[1];
+                        const base64Data = mimeMatch[2];
+                        
+                        // Convert base64 to binary
+                        const binaryString = atob(base64Data);
+                        const bytes = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i++) {
+                            bytes[i] = binaryString.charCodeAt(i);
+                        }
+                        
+                        // Create blob and URL
+                        const blob = new Blob([bytes], { type: mimeType });
+                        const blobUrl = URL.createObjectURL(blob);
+                        
+                        // Display based on file type
+                        if (mimeType.includes('pdf')) {
+                            // For PDF files
+                            content.innerHTML = `
+                                <div style="width: 100%; height: 100%; position: relative;">
+                                    <iframe src="${blobUrl}#toolbar=0" 
+                                            style="width: 100%; height: 100%; border: none; border-radius: 8px; display: block;" 
+                                            title="PDF Viewer">
+                                    </iframe>
+                                </div>
+                            `;
+                            // Update footer with fullscreen, download and close options
+                            updateModalFooter(blobUrl, 'certificate.pdf', 'pdf');
+                        } else if (mimeType.startsWith('image/')) {
+                            // For image files
+                            content.innerHTML = `
+                                <div style="width: 100%; height: 100%; position: relative;">
+                                    <img src="${blobUrl}" alt="${certificateName}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;">
+                                </div>
+                            `;
+                            // Update footer with fullscreen, download and close options
+                            updateModalFooter(blobUrl, 'certificate', 'image');
+                        } else if (mimeType.includes('word') || mimeType.includes('document') || mimeType.includes('officedocument')) {
+                            // For Word documents - try to display using Office Online
+                            content.innerHTML = `
+                                <div style="width: 100%; height: 100%; position: relative;">
+                                    <div style="background: #556B2F; color: white; padding: 15px; text-align: center; border-radius: 8px 8px 0 0;">
+                                        <h4 style="margin: 0; font-size: 18px;">🏆 Word Certificate Preview</h4>
+                                    </div>
+                                    
+                                    <div id="word-preview-container" style="width: 100%; height: calc(100% - 60px); position: relative;">
+                                        <!-- Try Office Online first -->
+                                        <iframe id="office-preview" 
+                                                src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(blobUrl)}" 
+                                                style="width: 100%; height: 100%; border: none; display: block;" 
+                                                title="Word Certificate Preview">
+                                        </iframe>
+                                        
+                                        <!-- Fallback message if Office Online fails -->
+                                        <div id="fallback-message" style="display: none; text-align: center; padding: 50px; color: #666;">
+                                            <div style="background: #556B2F; color: white; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; margin: 0 auto 20px; font-size: 36px;">
+                                                🏆
+                                            </div>
+                                            <h3>Word Certificate Preview</h3>
+                                            <p style="margin-bottom: 20px;">Unable to display preview. You can download to view the full certificate.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Check if Office Online fails and show fallback
+                            setTimeout(() => {
+                                const officeFrame = document.getElementById('office-preview');
+                                const fallback = document.getElementById('fallback-message');
+                                
+                                if (officeFrame && fallback) {
+                                    officeFrame.onerror = () => {
+                                        officeFrame.style.display = 'none';
+                                        fallback.style.display = 'block';
+                                    };
+                                    
+                                    // Also check if the iframe loads but shows an error
+                                    officeFrame.onload = () => {
+                                        try {
+                                            // Check if the iframe content indicates an error
+                                            if (officeFrame.contentDocument && officeFrame.contentDocument.body) {
+                                                const bodyText = officeFrame.contentDocument.body.textContent || '';
+                                                if (bodyText.includes('error') || bodyText.includes('not found') || bodyText.includes('access denied')) {
+                                                    officeFrame.style.display = 'none';
+                                                    fallback.style.display = 'block';
+                                                }
+                                            }
+                                        } catch (e) {
+                                            // Cross-origin error, assume it's working
+                                        }
+                                    };
+                                }
+                            }, 2000);
+                            
+                            // Update footer with fullscreen, download and close options
+                            updateModalFooter(blobUrl, 'certificate.docx', 'word');
+                        } else {
+                            // For other document types
+                            content.innerHTML = `
+                                <div style="text-align: center; padding: 50px; color: #666;">
+                                    <h3>🏆 Certificate</h3>
+                                    <p>This certificate file type (${mimeType}) cannot be displayed inline.<br>
+                                    Click below to download and open in the appropriate application.</p>
+                                </div>
+                            `;
+                            // Update footer with fullscreen, download and close options
+                            updateModalFooter(blobUrl, 'certificate', mimeType);
+                        }
+                        
+                        // Clean up blob URL after some time to prevent memory leaks
+                        setTimeout(() => {
+                            URL.revokeObjectURL(blobUrl);
+                        }, 300000); // 5 minutes
+                        
+                    } else {
+                        showCertificateErrorMessage();
+                    }
+                } catch (error) {
+                    console.error('Error processing certificate:', error);
+                    showCertificateErrorMessage();
+                }
+            } else if (certificateUrl && certificateUrl.startsWith('http')) {
+                // For regular HTTP URLs
                 content.innerHTML = `
                     <iframe src="${certificateUrl}" 
                             style="width: 100%; height: 100%; border: none; border-radius: 8px;" 
                             title="Certificate Viewer">
                     </iframe>
                 `;
+                // Update footer with fullscreen, open in new tab and close options for external URLs
+                updateModalFooter(certificateUrl, 'certificate', 'external');
+                
+                // Disable background scrolling for external URLs too
+                disableBackgroundScrolling();
+            } else {
+                // For any other case, show a proper error message
+                showCertificateErrorMessage();
             }
             
-            modal.style.display = 'block';
-        }
-
-        // Enhanced modal functions
-        function closeResumeModal() {
-            document.getElementById('resumeModal').style.display = 'none';
-            document.getElementById('resumeContent').innerHTML = '';
-        }
-
-        // Enhanced modal functions
-        function fullscreenView() {
-            const content = document.getElementById('resumeContent');
-            if (content.requestFullscreen) {
-                content.requestFullscreen();
+            function showCertificateErrorMessage() {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 50px; color: #666;">
+                        <h3>❌ Unable to Display Certificate</h3>
+                        <p>There was an issue loading your certificate for viewing.</p>
+                        <p style="color: #999; font-size: 14px;">Certificate: ${certificateName}</p>
+                        <p style="color: #999; font-size: 14px;">URL Type: ${certificateUrl ? certificateUrl.substring(0, 50) + '...' : 'None'}</p>
+                        <div style="margin-top: 20px;">
+                            <button onclick="closeResumeModal()" 
+                                    style="background: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin: 5px;">
+                                ✕ Close
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
         }
 
-        function zoomIn() {
+        // Enhanced modal functions - FIXED VERSION
+        function closeResumeModal() {
+            const modal = document.getElementById('resumeModal');
             const content = document.getElementById('resumeContent');
-            const currentScale = content.style.transform ? parseFloat(content.style.transform.match(/scale\(([^)]+)\)/)?.[1] || 1) : 1;
-            const newScale = Math.min(currentScale * 1.2, 3);
-            content.style.transform = `scale(${newScale})`;
-            content.style.transformOrigin = 'center center';
+            
+            // Clear content first
+            if (content) {
+                content.innerHTML = '';
+            }
+            
+            // Force modal to close
+            if (modal) {
+                // Remove any fullscreen state
+                if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+                    // Exit fullscreen if active
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                }
+                
+                // Reset modal styles
+                modal.style.display = 'none';
+                modal.style.position = 'fixed';
+                modal.style.top = '50%';
+                modal.style.left = '50%';
+                modal.style.transform = 'translate(-50%, -50%)';
+                modal.style.zIndex = '1000';
+                modal.style.width = 'auto';
+                modal.style.height = 'auto';
+                modal.style.maxWidth = '90vw';
+                modal.style.maxHeight = '90vh';
+                modal.style.minWidth = '300px';
+                modal.style.minHeight = '200px';
+                
+                // Remove any fullscreen classes
+                modal.classList.remove('fullscreen', 'fullscreen-active');
+                
+                // Reset button states
+                const fullscreenBtn = document.getElementById('fullscreenBtn');
+                if (fullscreenBtn) {
+                    fullscreenBtn.innerHTML = '🖥️ Fullscreen';
+                    fullscreenBtn.style.background = '#556B2F';
+                }
+            }
+            
+            // Re-enable background scrolling
+            enableBackgroundScrolling();
+        }
+        
+        // Disable background scrolling when modal is open
+        function disableBackgroundScrolling() {
+            // Store current scroll position
+            const scrollY = window.scrollY;
+            
+            // Add modal-open class to body
+            document.body.classList.add('modal-open');
+            
+            // Set body styles to prevent scrolling
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.top = `-${scrollY}px`;
+            
+            // Store scroll position for restoration
+            document.body.dataset.scrollY = scrollY.toString();
+        }
+        
+        // Re-enable background scrolling when modal is closed
+        function enableBackgroundScrolling() {
+            // Remove modal-open class from body
+            document.body.classList.remove('modal-open');
+            
+            // Get stored scroll position
+            const scrollY = document.body.dataset.scrollY;
+            
+            // Reset body styles
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+            
+            // Restore scroll position
+            if (scrollY) {
+                window.scrollTo(0, parseInt(scrollY));
+            }
+            
+            // Clean up stored data
+            delete document.body.dataset.scrollY;
         }
 
-        function zoomOut() {
+        // Helper function for downloading from blob URL
+        function downloadFromBlob(blobUrl, filename) {
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+        
+        // Helper functions for the resume viewer (EXACT SAME AS PROFILE PAGE)
+        function showErrorMessage() {
             const content = document.getElementById('resumeContent');
-            const currentScale = content.style.transform ? parseFloat(content.style.transform.match(/scale\(([^)]+)\)/)?.[1] || 1) : 1;
-            const newScale = Math.max(currentScale / 1.2, 0.5);
-            content.style.transform = `scale(${newScale})`;
-            content.style.transformOrigin = 'center center';
+            if (content) {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 50px; color: #666;">
+                        <h3>❌ Unable to Display Resume</h3>
+                        <p>There was an issue loading your resume for viewing.</p>
+                        <div style="margin-top: 20px;">
+                            <button onclick="closeResumeModal()" 
+                                    style="background: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin: 5px;">
+                                ✕ Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Function to try different document preview methods
+        function tryDocumentPreview(blobUrl, blob) {
+            console.log('Trying document preview methods...');
+            
+            // Method 1: Try to upload to a temporary service and use external viewers
+            uploadToTempService(blob)
+                .then(publicUrl => {
+                    if (publicUrl) {
+                        console.log('Got public URL, trying external viewers...');
+                        tryExternalViewers(publicUrl);
+                    } else {
+                        tryOfflinePreview(blob);
+                    }
+                })
+                .catch(error => {
+                    console.log('Upload failed, trying offline methods...', error);
+                    tryOfflinePreview(blob);
+                });
+        }
+        
+        // Try to create a temporary public URL for the document
+        function uploadToTempService(blob) {
+            return new Promise((resolve, reject) => {
+                // Try using a free temporary file hosting service
+                const formData = new FormData();
+                formData.append('file', blob, 'resume.docx');
+                
+                // Use tmpfiles.org or similar service (this is just an example)
+                fetch('https://tmpfiles.org/api/v1/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.url) {
+                        resolve(data.url);
+                    } else {
+                        reject('No URL returned');
+                    }
+                })
+                .catch(error => {
+                    console.log('Temp upload failed:', error);
+                    reject(error);
+                });
+            });
+        }
+        
+        // Try external document viewers with public URL
+        function tryExternalViewers(publicUrl) {
+            const loadingEl = document.getElementById('loading-preview');
+            const officeEl = document.getElementById('office-preview');
+            const googleEl = document.getElementById('google-preview');
+            const fallbackEl = document.getElementById('fallback-preview');
+            
+            // Hide loading
+            if (loadingEl) loadingEl.style.display = 'none';
+            
+            // Try Office Online first
+            const officeUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(publicUrl)}`;
+            if (officeEl) {
+                officeEl.src = officeUrl;
+                officeEl.style.display = 'block';
+                
+                // If Office fails, try Google
+                officeEl.onerror = () => {
+                    console.log('Office viewer failed, trying Google...');
+                    officeEl.style.display = 'none';
+                    
+                    const googleUrl = `https://docs.google.com/gview?url=${encodeURIComponent(publicUrl)}&embedded=true`;
+                    if (googleEl) {
+                        googleEl.src = googleUrl;
+                        googleEl.style.display = 'block';
+                        
+                        // If Google also fails, show fallback
+                        googleEl.onerror = () => {
+                            console.log('Google viewer also failed, showing fallback...');
+                            googleEl.style.display = 'none';
+                            if (fallbackEl) fallbackEl.style.display = 'block';
+                        };
+                    }
+                };
+            }
+        }
+        
+        // Try offline preview methods (convert to images, extract text, etc.)
+        function tryOfflinePreview(blob) {
+            console.log('Trying offline preview methods...');
+            
+            const loadingEl = document.getElementById('loading-preview');
+            const imagePreviewEl = document.getElementById('image-preview');
+            const fallbackEl = document.getElementById('fallback-preview');
+            
+            // Hide loading
+            if (loadingEl) loadingEl.style.display = 'none';
+            
+            // Try to read the document using mammoth.js (for docx files)
+            if (window.mammoth) {
+                console.log('Using mammoth.js to extract content...');
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mammoth.convertToHtml({ arrayBuffer: e.target.result })
+                        .then(function(result) {
+                            if (imagePreviewEl) {
+                                imagePreviewEl.innerHTML = `
+                                    <div style="max-width: 800px; margin: 0 auto; font-family: 'Times New Roman', serif; line-height: 1.6; color: #333;">
+                                        <div style="background: #f8f9fa; padding: 10px; margin-bottom: 20px; border-radius: 6px; text-align: center;">
+                                            <small style="color: #666;">📄 Document Preview (Converted from Word)</small>
+                                        </div>
+                                        ${result.value}
+                                    </div>
+                                `;
+                                imagePreviewEl.style.display = 'block';
+                                console.log('Successfully displayed document content!');
+                            }
+                        })
+                        .catch(function(error) {
+                            console.log('Mammoth conversion failed:', error);
+                            showFinalFallback();
+                        });
+                };
+                reader.readAsArrayBuffer(blob);
+            } else {
+                // Load mammoth.js dynamically
+                console.log('Loading mammoth.js library...');
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js';
+                script.onload = () => {
+                    console.log('Mammoth.js loaded, retrying...');
+                    tryOfflinePreview(blob);
+                };
+                script.onerror = () => {
+                    console.log('Failed to load mammoth.js, showing fallback...');
+                    showFinalFallback();
+                };
+                document.head.appendChild(script);
+            }
+            
+            function showFinalFallback() {
+                if (imagePreviewEl) imagePreviewEl.style.display = 'none';
+                if (fallbackEl) fallbackEl.style.display = 'block';
+            }
+        }
+
+        // Modal footer styling and functionality
+        function updateModalFooter(blobUrl, filename, fileType) {
+            const footer = document.querySelector('.resume-modal-footer');
+            if (footer) {
+                // For external URLs, show different buttons
+                if (fileType === 'external') {
+                    footer.innerHTML = `
+                        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                            <button id="fullscreenBtn" onclick="toggleFullscreen()" 
+                                    style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; background: #556B2F; color: white;">
+                                🖥️ Fullscreen
+                            </button>
+                            <button onclick="window.open('${blobUrl}', '_blank')" 
+                                    style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; background: #28a745; color: white;">
+                                🔍 Open in New Tab
+                            </button>
+                            <button onclick="closeResumeModal()" 
+                                    style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; background: #6c757d; color: white;">
+                                ❌ Close
+                        </button>
+                        </div>
+                    `;
+                } else {
+                    // For blob URLs (local files)
+                    footer.innerHTML = `
+                        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                            <button id="fullscreenBtn" onclick="toggleFullscreen()" 
+                                    style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; background: #556B2F; color: white;">
+                                🖥️ Fullscreen
+                            </button>
+                            <button onclick="downloadFromBlob('${blobUrl}', '${filename}')" 
+                                    style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; background: #007bff; color: white;">
+                                ⬇️ Download
+                                </button>
+                            <button onclick="closeResumeModal()" 
+                                    style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; background: #6c757d; color: white;">
+                                ❌ Close
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        // Toggle fullscreen resume viewer - COMPLETELY REWRITTEN TO FIX STUCK ISSUE
+        function toggleFullscreen() {
+            const modal = document.getElementById('resumeModal');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            
+            // Check if currently in fullscreen
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+                // Exit fullscreen with multiple fallback methods
+                exitFullscreenWithFallback();
+            } else {
+                // Enter fullscreen
+                enterFullscreen(modal, fullscreenBtn);
+            }
+        }
+        
+        // Aggressive fullscreen exit with multiple fallback methods
+        function exitFullscreenWithFallback() {
+            const modal = document.getElementById('resumeModal');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            
+            // Method 1: Standard exitFullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {
+                    // If standard method fails, try aggressive fallback
+                    aggressiveFullscreenExit();
+                });
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else {
+                // If no standard method, use aggressive fallback
+                aggressiveFullscreenExit();
+            }
+            
+            // Always force modal restoration after a short delay
+            setTimeout(() => {
+                forceModalRestoration();
+            }, 150);
+        }
+        
+        // Aggressive method to force exit fullscreen
+        function aggressiveFullscreenExit() {
+            const modal = document.getElementById('resumeModal');
+            
+            // Force remove fullscreen classes and styles
+            if (modal) {
+                modal.classList.remove('fullscreen');
+                modal.style.position = 'fixed';
+                modal.style.top = '50%';
+                modal.style.left = '50%';
+                modal.style.transform = 'translate(-50%, -50%)';
+                modal.style.width = '80%';
+                modal.style.height = '80%';
+                modal.style.maxWidth = '800px';
+                modal.style.maxHeight = '600px';
+                modal.style.zIndex = '1000';
+            }
+            
+            // Try to exit fullscreen again
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+        
+        // Force modal restoration to normal state
+        function forceModalRestoration() {
+            const modal = document.getElementById('resumeModal');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            
+            if (modal) {
+                // Force modal to be visible and properly positioned
+                modal.style.display = 'block';
+                modal.style.position = 'fixed';
+                modal.style.top = '50%';
+                modal.style.left = '50%';
+                modal.style.transform = 'translate(-50%, -50%)';
+                modal.style.zIndex = '1000';
+                modal.style.width = 'auto';
+                modal.style.height = 'auto';
+                modal.style.maxWidth = '90vw';
+                modal.style.maxHeight = '90vh';
+                modal.style.minWidth = '300px';
+                modal.style.minHeight = '200px';
+                
+                // Remove any fullscreen-related classes
+                modal.classList.remove('fullscreen', 'fullscreen-active');
+                
+                // Force a reflow to ensure styles are applied
+                modal.offsetHeight;
+                
+                // Force focus and make sure modal is interactive
+                modal.focus();
+                modal.style.pointerEvents = 'auto';
+            }
+            
+            // Reset button text
+            if (fullscreenBtn) {
+                fullscreenBtn.innerHTML = '🖥️ Fullscreen';
+                fullscreenBtn.style.background = '#556B2F';
+            }
+        }
+        
+        // Enter fullscreen function
+        function enterFullscreen(modal, fullscreenBtn) {
+            if (modal.requestFullscreen) {
+                modal.requestFullscreen().then(() => {
+                    // Successfully entered fullscreen
+                    if (fullscreenBtn) {
+                        fullscreenBtn.innerHTML = '📱 Exit Fullscreen';
+                        fullscreenBtn.style.background = '#dc3545';
+                    }
+                }).catch(() => {
+                    // Failed to enter fullscreen, reset button
+                    if (fullscreenBtn) {
+                        fullscreenBtn.innerHTML = '🖥️ Fullscreen';
+                        fullscreenBtn.style.background = '#556B2F';
+                    }
+                });
+            } else if (modal.webkitRequestFullscreen) {
+                modal.webkitRequestFullscreen();
+                if (fullscreenBtn) {
+                    fullscreenBtn.innerHTML = '📱 Exit Fullscreen';
+                    fullscreenBtn.style.background = '#dc3545';
+                }
+            } else if (modal.msRequestFullscreen) {
+                modal.msRequestFullscreen();
+                if (fullscreenBtn) {
+                    fullscreenBtn.innerHTML = '📱 Exit Fullscreen';
+                    fullscreenBtn.style.background = '#dc3545';
+                }
+            }
+        }
+        
+        // Enhanced fullscreen change event handler
+        function handleFullscreenChange() {
+            const modal = document.getElementById('resumeModal');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                // Fullscreen was exited, force modal restoration
+                forceModalRestoration();
+            }
+        }
+        
+        // Add multiple event listeners for fullscreen changes - PREVENT DUPLICATES
+        // Remove any existing listeners first to prevent conflicts
+        document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+        
+        // Add fresh event listeners
+        document.addEventListener('fullscreenchange', handleFullscreenChange, { once: false });
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange, { once: false });
+        document.addEventListener('msfullscreenchange', handleFullscreenChange, { once: false });
+        
+        // Add additional event listeners for better compatibility
+        document.addEventListener('fullscreenerror', () => {
+            // If fullscreen error occurs, force modal restoration
+            setTimeout(() => {
+                forceModalRestoration();
+            }, 100);
+        }, { once: false });
+        
+        // Add keyboard event listener for ESC key - PREVENT DUPLICATES
+        // Remove existing ESC listener first
+        document.removeEventListener('keydown', handleEscKey);
+        
+        // Add fresh ESC listener
+        document.addEventListener('keydown', handleEscKey, { once: false });
+        
+        // ESC key handler function
+        function handleEscKey(e) {
+            if (e.key === 'Escape') {
+                // If ESC is pressed and we're in fullscreen, force exit
+                if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+                    exitFullscreenWithFallback();
+                } else {
+                    // If not in fullscreen, close the modal
+                    closeResumeModal();
+                }
+            }
         }
 
         // Exit guest mode
         function exitGuestMode() {
+            // Close any open modal first
+            closeResumeModal();
+            
             if (confirm('Are you sure you want to exit guest mode?')) {
                 window.location.href = 'login.html';
             }
         }
+        
+        // Cleanup function to prevent event conflicts
+        function cleanupEventListeners() {
+            // Remove all fullscreen-related event listeners
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('fullscreenerror', () => {});
+            document.removeEventListener('keydown', handleEscKey);
+        }
+        
+        // Call cleanup when page loads to prevent conflicts
+        window.addEventListener('load', () => {
+            // Small delay to ensure all elements are loaded
+            setTimeout(() => {
+                cleanupEventListeners();
+            }, 100);
+        });
 
         // Keyboard navigation for certificates
         document.addEventListener('keydown', function(e) {
@@ -1207,12 +2129,8 @@
             }
         });
 
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeResumeModal();
-            }
-        });
+        // Close modal with Escape key - REMOVED DUPLICATE
+        // This is now handled by the main handleEscKey function above
 
         // Loading overlay functions
         function showLoadingOverlay() {
