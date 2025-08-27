@@ -711,6 +711,245 @@
                 font-size: 1.1rem;
             }
         }
+
+        /* Feedback Section Styles */
+        .feedback {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 5rem 0;
+        }
+
+        .feedback h2 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #556B2F;
+        }
+
+        .feedback .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 3rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feedback-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        .feedback-form-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        .feedback-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.8rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #556B2F;
+            box-shadow: 0 0 0 3px rgba(85, 107, 47, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .rating-stars input[type="radio"] {
+            display: none;
+        }
+
+        .rating-stars label {
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            opacity: 0.5;
+        }
+
+        .rating-stars label:hover,
+        .rating-stars label:hover ~ label {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .rating-stars input[type="radio"]:checked ~ label {
+            opacity: 1;
+        }
+
+        .rating-stars input[type="radio"]:checked ~ label,
+        .rating-stars input[type="radio"]:checked ~ label ~ label {
+            opacity: 0.5;
+        }
+
+        .feedback-submit-btn {
+            background: linear-gradient(135deg, #556B2F 0%, #6B8E23 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feedback-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(85, 107, 47, 0.3);
+        }
+
+        .feedback-submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .feedback-submit-btn .btn-loading {
+            display: none;
+        }
+
+        .feedback-submit-btn.loading .btn-text {
+            display: none;
+        }
+
+        .feedback-submit-btn.loading .btn-loading {
+            display: inline;
+        }
+
+        .feedback-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .feedback-benefits {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .feedback-benefits h3 {
+            color: #556B2F;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-item:hover {
+            transform: translateX(5px);
+        }
+
+        .benefit-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .benefit-item h4 {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .benefit-item p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Feedback Success/Error Messages */
+        .feedback-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .feedback-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Responsive Design for Feedback */
+        @media (max-width: 768px) {
+            .feedback-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .feedback h2 {
+                font-size: 2.5rem;
+            }
+
+            .feedback-form-container {
+                padding: 1.5rem;
+            }
+
+            .rating-stars {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -727,6 +966,7 @@
             <div class="nav-links" id="navLinks">
                 <a href="#features">Features</a>
                 <a href="#how-it-works">How It Works</a>
+                <a href="#feedback">Feedback</a>
                 <a href="login.html">Login</a>
                 <a href="Create-account.html">Sign Up</a>
             </div>
@@ -863,6 +1103,100 @@
       </div>
     </section>
 
+    <!-- Feedback Section -->
+    <section id="feedback" class="feedback">
+      <div class="container">
+        <h2>We'd Love to Hear From You!</h2>
+        <p class="section-subtitle">Your feedback helps us improve ReNex and make it better for everyone. Share your thoughts, suggestions, or report any issues you encounter.</p>
+        
+        <div class="feedback-content">
+          <div class="feedback-form-container">
+            <!-- Feedback messages will appear here -->
+            <div id="feedbackMessages"></div>
+            
+            <form id="feedbackForm" class="feedback-form">
+              <div class="form-group">
+                <label for="feedbackName">Name (Optional)</label>
+                <input type="text" id="feedbackName" name="name" placeholder="Your name">
+              </div>
+              
+              <div class="form-group">
+                <label for="feedbackEmail">Email (Optional)</label>
+                <input type="email" id="feedbackEmail" name="email" placeholder="your.email@example.com">
+              </div>
+              
+              <div class="form-group">
+                <label for="feedbackType">Feedback Type</label>
+                <select id="feedbackType" name="type" required>
+                  <option value="">Select feedback type</option>
+                  <option value="suggestion">Suggestion</option>
+                  <option value="bug">Bug Report</option>
+                  <option value="feature">Feature Request</option>
+                  <option value="general">General Feedback</option>
+                  <option value="praise">Praise</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="feedbackMessage">Your Feedback</label>
+                <textarea id="feedbackMessage" name="message" rows="5" placeholder="Tell us what you think about ReNex, what we can improve, or any issues you've encountered..." required></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label for="feedbackRating">How would you rate ReNex?</label>
+                <div class="rating-stars">
+                  <input type="radio" id="star5" name="rating" value="5">
+                  <label for="star5">⭐</label>
+                  <input type="radio" id="star4" name="rating" value="4">
+                  <label for="star4">⭐</label>
+                  <input type="radio" id="star3" name="rating" value="3">
+                  <label for="star3">⭐</label>
+                  <input type="radio" id="star2" name="rating" value="2">
+                  <label for="star2">⭐</label>
+                  <input type="radio" id="star1" name="rating" value="1">
+                  <label for="star1">⭐</label>
+                </div>
+              </div>
+              
+              <button type="submit" class="feedback-submit-btn">
+                <span class="btn-text">Send Feedback</span>
+                <span class="btn-loading" style="display: none;">Sending...</span>
+              </button>
+            </form>
+          </div>
+          
+          <div class="feedback-info">
+            <div class="feedback-benefits">
+              <h3>Why Your Feedback Matters</h3>
+              <div class="benefit-item">
+                <div class="benefit-icon">🚀</div>
+                <div>
+                  <h4>Continuous Improvement</h4>
+                  <p>Your suggestions help us enhance features and fix issues faster.</p>
+                </div>
+              </div>
+              
+              <div class="benefit-item">
+                <div class="benefit-icon">🎯</div>
+                <div>
+                  <h4>User-Centric Development</h4>
+                  <p>We prioritize features and improvements based on user needs and feedback.</p>
+                </div>
+              </div>
+              
+              <div class="benefit-item">
+                <div class="benefit-icon">💡</div>
+                <div>
+                  <h4>Innovation</h4>
+                  <p>Your ideas can inspire new features that benefit the entire ReNex community.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Call to Action Section -->
     <section class="cta">
       <div class="container">
@@ -931,6 +1265,7 @@
               <a href="#how-it-works">How It Works</a>
               <a href="login.html">Login</a>
               <a href="Create-account.html">Sign Up</a>
+              <a href="feedback-admin.html">Feedback Dashboard</a>
             </div>
           </div>
         </div>
@@ -965,6 +1300,104 @@
             } else {
                 header.style.background = 'linear-gradient(135deg, #556B2F 0%, #6B8E23 100%)';
             }
+        });
+
+        // Feedback Form Handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const feedbackForm = document.getElementById('feedbackForm');
+            
+            if (feedbackForm) {
+                feedbackForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const submitBtn = this.querySelector('.feedback-submit-btn');
+                    const btnText = submitBtn.querySelector('.btn-text');
+                    const btnLoading = submitBtn.querySelector('.btn-loading');
+                    
+                    // Show loading state
+                    submitBtn.classList.add('loading');
+                    submitBtn.disabled = true;
+                    
+                    // Get form data
+                    const formData = new FormData(this);
+                    const feedbackData = {
+                        name: formData.get('name') || 'Anonymous',
+                        email: formData.get('email') || 'No email provided',
+                        type: formData.get('type'),
+                        message: formData.get('message'),
+                        rating: formData.get('rating') || 'No rating',
+                        timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        page: 'Landing Page'
+                    };
+                    
+                    try {
+                        // For now, we'll store feedback in localStorage and show a success message
+                        // In a real application, you'd send this to your backend
+                        const existingFeedback = JSON.parse(localStorage.getItem('renx_feedback') || '[]');
+                        existingFeedback.push(feedbackData);
+                        localStorage.setItem('renx_feedback', JSON.stringify(existingFeedback));
+                        
+                        // Show success message
+                        showFeedbackMessage('Thank you for your feedback! We appreciate your input and will use it to improve ReNex.', 'success');
+                        
+                        // Reset form
+                        this.reset();
+                        
+                        // Log feedback to console for development
+                        console.log('✅ Feedback submitted:', feedbackData);
+                        
+                    } catch (error) {
+                        console.error('❌ Error submitting feedback:', error);
+                        showFeedbackMessage('Sorry, there was an error submitting your feedback. Please try again.', 'error');
+                    } finally {
+                        // Reset button state
+                        submitBtn.classList.remove('loading');
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+        });
+
+        // Function to show feedback messages
+        function showFeedbackMessage(message, type) {
+            const messagesContainer = document.getElementById('feedbackMessages');
+            
+            // Remove existing messages
+            messagesContainer.innerHTML = '';
+            
+            // Create new message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `feedback-message ${type}`;
+            messageDiv.textContent = message;
+            
+            // Add message to container
+            messagesContainer.appendChild(messageDiv);
+            
+            // Show message
+            messageDiv.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Star rating interaction
+        document.addEventListener('DOMContentLoaded', function() {
+            const ratingLabels = document.querySelectorAll('.rating-stars label');
+            
+            ratingLabels.forEach((label, index) => {
+                label.addEventListener('click', function() {
+                    // Reset all stars
+                    ratingLabels.forEach(l => l.style.opacity = '0.5');
+                    
+                    // Highlight selected star and all before it
+                    for (let i = 0; i <= index; i++) {
+                        ratingLabels[i].style.opacity = '1';
+                    }
+                });
+            });
         });
     </script>
 </body>

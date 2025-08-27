@@ -98,6 +98,48 @@ body, html {
   gap: 8px;
 }
 
+/* File Info Container Styles */
+.file-info-container {
+  margin-top: 0.5rem;
+}
+
+.file-info-container .file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.file-info-container .file-name {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #374151;
+  background-color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #d1d5db;
+  flex: 1;
+}
+
+.file-info-container .remove-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.file-info-container .remove-btn:hover {
+  background-color: #dc2626;
+}
+
 .copy-icon-wrapper {
   display: inline-flex;
   align-items: center;

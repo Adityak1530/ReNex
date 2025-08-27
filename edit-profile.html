@@ -44,6 +44,7 @@
                         <label for="profilePhoto">Upload Photo</label>
                         <input type="file" id="profilePhoto" name="profilePhoto" accept="image/*">
                         <div id="photoPreview" class="photo-preview"></div>
+                        <div id="photoFileInfo" class="file-info-container"></div>
                     </div>
                 </div>
 
@@ -54,6 +55,18 @@
                         <label for="resume">Upload Resume</label>
                         <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx">
                         <small>PDF, DOC, or DOCX format</small>
+                        <div id="resumeFileInfo" class="file-info-container"></div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Certificates</h3>
+                    
+                    <div class="form-group">
+                        <label for="certificates">Upload Certificates</label>
+                        <input type="file" id="certificates" name="certificates" accept=".pdf,.jpg,.jpeg,.png" multiple>
+                        <small>PDF, JPG, JPEG, or PNG format (multiple files allowed)</small>
+                        <div id="certificatesFileInfo" class="file-info-container"></div>
                     </div>
                 </div>
 
@@ -383,11 +396,34 @@
             photoInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
+                    showFileInfo('photoFileInfo', file, 'profilePhoto');
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         showPhotoPreview(e.target.result);
                     };
                     reader.readAsDataURL(file);
+                }
+            });
+            
+            // Resume upload
+            const resumeInput = document.getElementById('resume');
+            resumeInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    showFileInfo('resumeFileInfo', file, 'resume');
+                }
+            });
+            
+            // Certificates upload
+            const certificatesInput = document.getElementById('certificates');
+            certificatesInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                    if (!selectedFiles.certificates) {
+                        selectedFiles.certificates = [];
+                    }
+                    selectedFiles.certificates = files;
+                    showMultipleFilesInfo('certificatesFileInfo', files, 'certificates');
                 }
             });
             
@@ -597,6 +633,59 @@
         function showPhotoPreview(src) {
             const preview = document.getElementById('photoPreview');
             preview.innerHTML = `<img src="${src}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">`;
+        }
+        
+        // File management functions
+        function showFileInfo(containerId, file, fileType) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="file-item">
+                    <span class="file-name">${file.name}</span>
+                    <button type="button" onclick="removeFile('${fileType}')" class="remove-btn">
+                        ✕
+                    </button>
+                </div>
+            `;
+        }
+        
+        function showMultipleFilesInfo(containerId, files, fileType) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            let filesHtml = '';
+            files.forEach((file, index) => {
+                filesHtml += `
+                    <div class="file-item">
+                        <span class="file-name">${file.name}</span>
+                        <button type="button" onclick="removeFileAtIndex('${fileType}', ${index})" class="remove-btn">
+                            ✕
+                        </button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = filesHtml;
+        }
+        
+        function removeFile(fileType) {
+            if (fileType === 'profilePhoto') {
+                document.getElementById('profilePhoto').value = '';
+                document.getElementById('photoFileInfo').innerHTML = '';
+                const preview = document.getElementById('photoPreview');
+                if (preview) preview.innerHTML = '';
+            } else if (fileType === 'resume') {
+                document.getElementById('resume').value = '';
+                document.getElementById('resumeFileInfo').innerHTML = '';
+            }
+        }
+        
+        function removeFileAtIndex(fileType, index) {
+            if (fileType === 'certificates' && selectedFiles.certificates && Array.isArray(selectedFiles.certificates)) {
+                selectedFiles.certificates.splice(index, 1);
+                showMultipleFilesInfo('certificatesFileInfo', selectedFiles.certificates, 'certificates');
+            }
         }
         
         // Logout function

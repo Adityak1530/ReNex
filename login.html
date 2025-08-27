@@ -97,6 +97,88 @@
         .password-container input[type="text"] {
             padding-right: 45px;
         }
+
+        /* Remember Me Checkbox Styles */
+        .remember-me-container {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .remember-me-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            user-select: none;
+            transition: color 0.3s ease;
+        }
+
+        .remember-me-label:hover {
+            color: #556B2F;
+        }
+
+        .remember-me-checkbox {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            height: 18px;
+            width: 18px;
+            background-color: #fff;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .remember-me-checkbox:checked ~ .checkmark {
+            background-color: #556B2F;
+            border-color: #556B2F;
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 5px;
+            top: 2px;
+            width: 4px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .remember-me-checkbox:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .remember-text {
+            font-weight: 500;
+            margin-left: 5px;
+        }
+
+        .forgot-password-link {
+            margin-left: auto;
+            color: #556B2F;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password-link:hover {
+            color: #3f5220;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -131,6 +213,17 @@
                             </svg>
                         </span>
                     </div>
+                    
+                    <!-- Remember Me Checkbox -->
+                    <div class="remember-me-container">
+                        <label class="remember-me-label">
+                            <input type="checkbox" id="rememberMe" class="remember-me-checkbox">
+                            <span class="checkmark"></span>
+                            <span class="remember-text">Remember Me</span>
+                        </label>
+                        <a href="#" class="forgot-password-link" onclick="handleForgotPassword(); return false;">Forgot Password?</a>
+                    </div>
+                    
                     <button type="submit">Log In as Host</button>
                 </form>
                 <!-- GUEST access form -->
@@ -494,6 +587,14 @@
                         if (user.passwordHash === passwordHash) {
                             console.log('Login successful for:', user);
                             
+                            // Handle Remember Me functionality
+                            const rememberMe = document.getElementById('rememberMe').checked;
+                            if (rememberMe) {
+                                saveCredentials(email, password);
+                            } else {
+                                clearSavedCredentials();
+                            }
+                            
                             // Show success message
                             showNotification('Login successful! Redirecting...', 'success');
                             
@@ -560,6 +661,61 @@
             return hashHex;
         }
         
+        // Remember Me functionality
+        function saveCredentials(email, password) {
+            try {
+                const credentials = {
+                    email: email,
+                    password: password,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('renx_remember_me', JSON.stringify(credentials));
+                console.log('✅ Credentials saved for Remember Me');
+            } catch (error) {
+                console.error('❌ Error saving credentials:', error);
+            }
+        }
+
+        function loadSavedCredentials() {
+            try {
+                const saved = localStorage.getItem('renx_remember_me');
+                if (saved) {
+                    const credentials = JSON.parse(saved);
+                    const rememberMeCheckbox = document.getElementById('rememberMe');
+                    
+                    // Check if credentials are still valid (not older than 30 days)
+                    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+                    if (credentials.timestamp > thirtyDaysAgo) {
+                        // Restore credentials
+                        document.getElementById('hostUsername').value = credentials.email;
+                        document.getElementById('hostPassword').value = credentials.password;
+                        rememberMeCheckbox.checked = true;
+                        console.log('✅ Saved credentials restored');
+                    } else {
+                        // Clear expired credentials
+                        localStorage.removeItem('renx_remember_me');
+                        console.log('🗑️ Expired credentials cleared');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error loading saved credentials:', error);
+                localStorage.removeItem('renx_remember_me');
+            }
+        }
+
+        function clearSavedCredentials() {
+            try {
+                localStorage.removeItem('renx_remember_me');
+                console.log('🗑️ Saved credentials cleared');
+            } catch (error) {
+                console.error('❌ Error clearing saved credentials:', error);
+            }
+        }
+
+        function handleForgotPassword() {
+            showNotification('Password reset functionality coming soon! Please contact support for now.', 'error');
+        }
+
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Setting up login handling...');
@@ -600,6 +756,9 @@
             
             // Clear forms one more time after everything loads
             setTimeout(clearAllForms, 500);
+            
+            // Load saved credentials if Remember Me was checked
+            loadSavedCredentials();
             
             setupLoginHandling();
         });

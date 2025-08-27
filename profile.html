@@ -148,12 +148,14 @@
         <div class="form-group">
           <label for="editPhoto">Profile Photo:</label>
           <input type="file" id="editPhoto" name="photo" accept="image/*">
+          <div id="photoFileInfo" class="file-info-container"></div>
         </div>
         
         <div class="form-group">
           <label for="editResume">Resume:</label>
           <input type="file" id="editResume" name="resume" accept=".pdf,.doc,.docx">
           <small class="form-help">Upload your resume (PDF, DOC, or DOCX)</small>
+          <div id="resumeFileInfo" class="file-info-container"></div>
         </div>
         
         <div class="form-group">
@@ -163,6 +165,7 @@
           </div>
           <input type="file" id="editCertificates" name="certificates" accept=".pdf,.jpg,.jpeg,.png" multiple>
           <small class="form-help">Upload multiple certificates (PDF, JPG, or PNG) - Maximum 20 certificates, 4MB per file</small>
+          <div id="certificatesFileInfo" class="file-info-container"></div>
         </div>
         
         <div class="form-group">
@@ -1213,6 +1216,7 @@
         photoInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                showFileInfo('photoFileInfo', file, 'photo');
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     // Show preview in the modal
@@ -1235,6 +1239,7 @@
         resumeInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                showFileInfo('resumeFileInfo', file, 'resume');
                 // Show resume file info
                 const previewContainer = document.getElementById('resumePreview') || createResumePreview();
                 previewContainer.innerHTML = `
@@ -1294,6 +1299,7 @@
                 
                 // Show certificate files info
                 updateCertificatesPreview();
+                showMultipleFilesInfo('certificatesFileInfo', selectedCertificates, 'certificates');
                 
                 // Clear the input so user can select more files
                 e.target.value = '';
@@ -1339,6 +1345,9 @@
             
             previewHTML += `</div>`;
             previewContainer.innerHTML = previewHTML;
+            
+            // Also update the file info container
+            showMultipleFilesInfo('certificatesFileInfo', selectedCertificates, 'certificates');
         }
         
         // Function to remove a specific certificate by index
@@ -1348,6 +1357,8 @@
                 updateCertificatesPreview();
                 // Update the counter
                 document.getElementById('certificateCounter').textContent = `${selectedCertificates.length} files selected`;
+                // Update the file info container
+                showMultipleFilesInfo('certificatesFileInfo', selectedCertificates, 'certificates');
             }
         }
         
@@ -1357,6 +1368,8 @@
                 selectedCertificates = [];
                 updateCertificatesPreview();
                 document.getElementById('certificateCounter').textContent = '0 files selected';
+                // Update the file info container
+                showMultipleFilesInfo('certificatesFileInfo', selectedCertificates, 'certificates');
             }
         }
         
@@ -1369,6 +1382,8 @@
             if (confirm(`Are you sure you want to remove "${selectedCertificates[index].name}"?`)) {
                 selectedCertificates.splice(index, 1);
                 updateCertificatesPreview();
+                // Update the file info container
+                showMultipleFilesInfo('certificatesFileInfo', selectedCertificates, 'certificates');
             }
         };
         
@@ -1377,6 +1392,8 @@
                 selectedCertificates = [];
                 updateCertificatesPreview();
                 document.getElementById('certificateCounter').textContent = '0 files selected';
+                // Update the file info container
+                showMultipleFilesInfo('certificatesFileInfo', selectedCertificates, 'certificates');
             }
         };
 
@@ -1406,6 +1423,79 @@
             certificatesInput.parentNode.appendChild(previewDiv);
             return previewDiv;
         }
+
+        // File management functions
+        function showFileInfo(containerId, file, fileType) {
+            console.log('showFileInfo called with:', containerId, file.name, fileType);
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error('Container not found:', containerId);
+                return;
+            }
+            
+            console.log('Container found, updating HTML...');
+            container.innerHTML = `
+                <div class="file-item">
+                    <span class="file-name">${file.name}</span>
+                    <button type="button" onclick="removeFile('${fileType}')" class="remove-btn">
+                        ✕
+                    </button>
+                </div>
+            `;
+            console.log('HTML updated successfully');
+        }
+        
+        function showMultipleFilesInfo(containerId, files, fileType) {
+            console.log('showMultipleFilesInfo called with:', containerId, files.length, fileType);
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error('Container not found:', containerId);
+                return;
+            }
+            
+            console.log('Container found, updating HTML...');
+            let filesHtml = '';
+            files.forEach((file, index) => {
+                filesHtml += `
+                    <div class="file-item">
+                        <span class="file-name">${file.name}</span>
+                        <button type="button" onclick="removeFileAtIndex('${fileType}', ${index})" class="remove-btn">
+                            ✕
+                        </button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = filesHtml;
+            console.log('HTML updated successfully');
+        }
+        
+        function removeFile(fileType) {
+            if (fileType === 'photo') {
+                document.getElementById('editPhoto').value = '';
+                document.getElementById('photoFileInfo').innerHTML = '';
+                const previewContainer = document.getElementById('photoPreview');
+                if (previewContainer) previewContainer.innerHTML = '';
+            } else if (fileType === 'resume') {
+                document.getElementById('editResume').value = '';
+                document.getElementById('resumeFileInfo').innerHTML = '';
+                const previewContainer = document.getElementById('resumePreview');
+                if (previewContainer) previewContainer.innerHTML = '';
+            }
+        }
+        
+        function removeFileAtIndex(fileType, index) {
+            if (fileType === 'certificates' && selectedCertificates && Array.isArray(selectedCertificates)) {
+                selectedCertificates.splice(index, 1);
+                updateCertificatesPreview();
+                showMultipleFilesInfo('certificatesFileInfo', selectedCertificates, 'certificates');
+                document.getElementById('certificateCounter').textContent = `${selectedCertificates.length} files selected`;
+            }
+        }
+        
+        // Add functions to global scope for HTML onclick events
+        window.removeFile = removeFile;
+        window.removeFileAtIndex = removeFileAtIndex;
 
         // Open modal
         editProfileBtn.addEventListener('click', () => {
